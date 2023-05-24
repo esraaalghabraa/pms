@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\DrugRequest;
-use App\Models\SupplierStorage;
+
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 

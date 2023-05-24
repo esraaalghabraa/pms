@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Permission;
-use App\Models\Role;
+
+use App\Models\Registration\Permission;
+use App\Models\Registration\Role;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
 {
