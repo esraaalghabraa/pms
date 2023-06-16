@@ -44,6 +44,10 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
+        'frontuser' => [
+            'driver' => 'session',
+            'provider' => 'frontusers',
+        ],
     ],
 
     /*
@@ -66,11 +70,15 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => App\Models\Registration\User::class,
         ],
         'admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class,
+        ],
+        'frontusers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Registration\FrontUser::class,
         ],
 
         // 'users' => [
@@ -97,12 +105,6 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
-            'table' => 'password_resets',
-            'expire' => 60,
-            'throttle' => 60,
-        ],
-        'admins' => [
-            'provider' => 'admins',
             'table' => 'password_resets',
             'expire' => 60,
             'throttle' => 60,

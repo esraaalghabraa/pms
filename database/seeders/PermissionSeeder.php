@@ -20,7 +20,7 @@ class PermissionSeeder extends Seeder
         $allRoles = Role::all()->keyBy('id');
 
         $permissions = [
-            'properties-manage' => [Role::ROLE_OWNER],
+            'create-request' => [Role::ROLE_Supplier],
             'bookings-manage' => [Role::ROLE_Supplier],
         ];
 

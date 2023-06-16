@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Pharmacy;
 
 use App\Http\Controllers\Controller;
 use App\Models\Drug\Category;
+use App\Models\Drug\Drug;
+use App\Models\Transaction\DrugRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 

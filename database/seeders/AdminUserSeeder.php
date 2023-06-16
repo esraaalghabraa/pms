@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin;
 use App\Models\Registration\User;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -17,15 +18,9 @@ class AdminUserSeeder extends Seeder
      */
     public function run()
     {
-        for($i=1;$i<=10;$i++) {
-            User::create([
-                'name' => fake()->firstName(),
-                'email' => fake()->unique()->safeEmail(),
-                'password'=>Hash::make('123456789'),
-                'verify_code'=>rand(1000,2000),
-                'email_verified_at' => Carbon::now(),
-                'role_id' => rand(1,3), // Administrator
-            ]);
-        }
+      $data['name']='esraa';
+      $data['email']='osamaaabdalmalik@gmail.com';
+      $data['password']=bcrypt(123456789);
+      Admin::create($data);
     }
 }

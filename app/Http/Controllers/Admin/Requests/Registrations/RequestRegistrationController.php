@@ -16,35 +16,6 @@ class RequestRegistrationController extends Controller
         return $this->success($orders);
     }
 
-    public function createRequest(Request $request)
-    {
-        $validator = Validator::make($request->all(),
-            [
-                'name' => ['required', 'string', 'min:7', 'max:50', 'unique:registration_requests,name'],
-                'address' => ['required', 'string'],
-                'type' => ['required', 'string'],
-                'status' => ['required', 'string'],
-                'phone_number' => ['required', 'string', 'unique:registration_requests,phone_number']
-            ]);
-        if ($validator->fails())
-            return $validator->errors()->first();
-        try {
-            RegistrationRequest::create([
-                'name' => $request->name,
-                'type' => $request->type,
-                'status' => $request->status,
-                'phone_number' => $request->phone_number,
-                'address' => $request->address,
-                'owner_id' => auth()->user()->id,
-            ]);
-            DB::commit();
-            return $this->success();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->error($e);
-        }
-    }
-
     public function rejectRequest(Request $request)
     {
         $validator = Validator::make($request->all(), [

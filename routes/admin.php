@@ -12,3 +12,12 @@
 |
 */
 
+use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\User\Auth\AuthUserController;
+use Illuminate\Support\Facades\Route;
+
+Route::post('login',[LoginController::class,'login']);
+
+Route::middleware(['auth:sanctum','abilities:admin'])->group(function (){
+    Route::post('logout',[LoginController::class,'logout']);
+});
