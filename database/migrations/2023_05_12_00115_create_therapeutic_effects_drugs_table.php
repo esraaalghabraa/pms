@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('therapeutic_effects_drugs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('drug_id')->constrained('drugs');
-            $table->foreignId('dosage_form_id')->constrained('dosage_forms');
+            $table->foreignId('therapeutic_effect_id')->constrained('therapeutic_effects');
             $table->timestamps();
         });
     }

@@ -15,13 +15,13 @@ return new class extends Migration
     {
         Schema::create('drugs', function (Blueprint $table) {
             $table->id();
-            $table->string('brand_name');
+            $table->string('brand_name')->index('name');
             $table->string('scientific_name');
-            $table->string('capacity');
-            $table->string('titer');
-            $table->string('contraindications');
-            $table->string('side_effects');
-            $table->boolean('is_prescription')->default(false);
+            $table->string('capacity')->nullable();
+            $table->string('titer')->nullable();
+            $table->string('contraindications')->nullable();
+            $table->string('side_effects')->nullable();
+            $table->boolean('is_prescription')->default(false)->nullable();
             $table->foreignId('category_id')->constrained('categories');
             $table->foreignId('dosage_form_id')->constrained('dosage_forms');
             $table->foreignId('manufacture_company_id')->constrained('manufacture_companies');

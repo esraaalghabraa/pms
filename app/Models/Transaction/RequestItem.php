@@ -2,7 +2,6 @@
 
 namespace App\Models\Transaction;
 
-use App\Models\RepositoryStorage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

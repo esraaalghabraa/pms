@@ -3,7 +3,6 @@
 namespace App\Models\Transaction;
 
 use App\Models\Drug\Drug;
-use App\Models\Registration\Pharmacy;
 use App\Models\Registration\Repository;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 class RepositoryStorage extends Model
 {
     use HasFactory;
+
+    protected $guarded=[];
 
     public function drug()
     {
@@ -20,5 +21,10 @@ class RepositoryStorage extends Model
     public function repository()
     {
         return $this->belongsTo(Repository::class);
+    }
+
+    public function batches()
+    {
+        return $this->hasMany(RepositoryBatch::class);
     }
 }

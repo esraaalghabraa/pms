@@ -10,12 +10,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Drug extends Model
 {
     use HasFactory;
     protected $guarded=[];
+    protected $hidden=['updated_at','created_at','pivot'];
+
 
     public function category():BelongsTo
     {
@@ -33,21 +34,22 @@ class Drug extends Model
     }
 
     public function indications():BelongsToMany{
-        return $this->belongsToMany(Indication::class,'indications_drugs');
+        return $this->belongsToMany(Indication::class,IndicationDrug::class);
     }
 
     public function scientificMaterials():BelongsToMany{
-        return $this->belongsToMany(Drug::class,'scientific_materials_drugs');
+        return $this->belongsToMany(ScientificMaterial::class,ScientificMaterialDrug::class);
     }
 
     public function therapeuticEffects():BelongsToMany{
-        return $this->belongsToMany(Drug::class,'therapeutic_effects_drugs');
+        return $this->belongsToMany(TherapeuticEffect::class,TherapeuticEffectDrug::class);
     }
 
     public function pharmacies():BelongsToMany
     {
         return $this->belongsToMany(Pharmacy::class,PharmacyStorage::class);
     }
+
     public function repositories():BelongsToMany
     {
         return $this->belongsToMany(Repository::class,RepositoryStorage::class);

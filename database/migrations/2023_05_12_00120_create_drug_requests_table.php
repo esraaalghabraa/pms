@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('drug_requests', function (Blueprint $table) {
             $table->id();
-            $table->string('status');
+            $table->enum('status',['pending','accepting','rejecting']);
             $table->date('date');
             $table->date('date_delivery')->nullable();
             $table->foreignId('buy_bill_id')->constrained('buy_bills');

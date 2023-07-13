@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->enum('unit', ['ml', 'g', 'mg', 'capsule', 'tablet', 'piece','puff']);
-            $table->enum('type', ['Tablets and Capsules', 'Liquids', 'Creams and Ointments', 'Injectables','Inhalation']);
+            $table->enum('type', ['Tablets and Capsules', 'Liquids', 'Creams and Ointments', 'Injectables','Inhalation','Others']);
             $table->timestamps();
         });
     }

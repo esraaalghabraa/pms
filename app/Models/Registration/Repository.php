@@ -3,7 +3,7 @@
 namespace App\Models\Registration;
 
 use App\Models\Drug\Drug;
-use App\Models\RepositoryStorage;
+use App\Models\Transaction\RepositoryStorage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

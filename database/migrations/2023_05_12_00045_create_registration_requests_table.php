@@ -15,11 +15,11 @@ return new class extends Migration
     {
         Schema::create('registration_requests', function (Blueprint $table) {
             $table->id();
-            $table->string('name',30)->unique();
+            $table->string('name',30);
             $table->enum('type',['pharmacy','repository']);
             $table->string('document_photo',255)->nullable();
             $table->enum('status',['pending','accepting','rejecting']);
-            $table->string('phone_number',30)->unique();
+            $table->string('phone_number',30);
             $table->string('address',30);
             $table->foreignId('owner_id')->constrained('users');
             $table->softDeletes();

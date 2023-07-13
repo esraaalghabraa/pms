@@ -1,33 +1,27 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Orders\Registrations;
+namespace App\Http\Controllers\Admin\Requests\Registrations;
 
 use App\Http\Controllers\Controller;
+use App\Models\Registration\Pharmacy;
 use App\Models\Registration\RegistrationRequest;
+use App\Models\Registration\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class RequestRegistrationController extends Controller
 {
-    public function getRequests()
+    public function get()
     {
-        $orders = RegistrationRequest::get();
-        return $this->success($orders);
+        $ordersPharmacy = RegistrationRequest::where('type','pharmacy')->get();
+        $ordersRepository = RegistrationRequest::where('type','repository')->get();
+        $data['Pharmacies']=$ordersPharmacy;
+        $data['Repositories']=$ordersRepository;
+        return $this->success($data);
     }
 
-    public function rejectRequest(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'id' => 'required|numeric|exists:registration_requests,id',
-        ]);
-        if ($validator->fails())
-            return $this->error($validator->errors()->first());
-        RegistrationRequest::where('id', $request->id)->first()->delete();
-        return $this->error('Sorry, your account within PMS has been canceled due to fake information within the registration account');
-    }
-
-    public function acceptRequest(Request $request)
+    public function accept(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -39,56 +33,74 @@ class RequestRegistrationController extends Controller
             $order = RegistrationRequest::where('id', $request->id)->first();
             if (!$order)
                 return $this->error();
-            Pharmacy::create([
-                'name' => $order->name,
-                'address' => $order->address,
-                'phone_number' => $order->phone_number,
-                'owner_id' => $order->owner_id,
-            ]);
+           if ($order->type == 'pharmacy'){
+                Pharmacy::create([
+                   'name' => $order->name,
+                   'address' => $order->address,
+                   'phone_number' => $order->phone_number,
+                   'owner_id' => $order->owner_id,
+               ]);
+           }else{
+               Repository::create([
+                   'name' => $order->name,
+                   'address' => $order->address,
+                   'phone_number' => $order->phone_number,
+                   'owner_id' => $order->owner_id,
+               ]);
+           }
+            $order->update(['status'=>'accepting']);
+            $order->save();
             $order->delete();
             DB::commit();
-            return $this->success();
+            return $this->success('Done Accept Your Request');
         } catch (\Exception $e) {
             DB::rollback();
             return $this->error($e);
         }
     }
 
-    public function deleteRequest(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'id' => 'required|numeric|exists:registration_requests,id',
-        ]);
-
-        if ($validator->fails())
-            return $this->error($validator->errors()->first());
-        RegistrationRequest::where('id', $request->id)->forceDelete();
-        return $this->success();
-    }
-
-    public function archiveRequest(Request $request)
+    public function reject(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|numeric|exists:registration_requests,id',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        RegistrationRequest::where('id', $request->id)->first()->delete();
-        return $this->success();
+        $order = RegistrationRequest::where('id', $request->id)->first();
+        $order->update(['status'=>'rejecting']);
+        $order->save();
+        $order->delete();
+        return $this->success('Sorry, your account within PMS has been canceled due to fake information within the registration account');
     }
 
-    public function removeArchiveRequest(Request $request)
+    public function delete(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|numeric|exists:registration_requests,id',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        RegistrationRequest::where('id', $request->id)->first()->update(['deleted_at' => null])->save();
+        RegistrationRequest::onlyTrashed()->where('id', $request->id)->first()->forceDelete();
         return $this->success();
     }
 
-    public function getArchivedRequests(Request $request)
+    public function deleteAll(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'archive_requests' => 'required',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+        $archiveRequests = json_decode($request->archive_requests);
+        foreach ($archiveRequests as $archiveRequest)
+            RegistrationRequest::onlyTrashed()
+                ->where('id', $archiveRequest->id)
+                ->first()->forceDelete();
+
+        return $this->success();
+    }
+
+    public function getArchived()
     {
         $orders = RegistrationRequest::onlyTrashed()->get();
 

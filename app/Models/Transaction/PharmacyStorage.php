@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class PharmacyStorage extends Model
 {
     use HasFactory;
+    protected $guarded=[];
 
     public function drug()
     {
