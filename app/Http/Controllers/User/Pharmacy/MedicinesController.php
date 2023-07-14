@@ -131,19 +131,27 @@ class MedicinesController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'medicine_storage_id' => 'required|numeric|exists:pharmacy_storages,id',
-            'number' => 'required',
-            'quantity' => 'required',
-            'barcode' => 'required',
-            'date_of_entry' => 'required',
+            'price' => 'required|numeric',
+            'quantity' => 'required|numeric',
+            'barcode' => 'required|numeric|min:5|max:15',
+            'date_of_entry' => 'required|string|max:50',
             'expired_date' => 'required|string|max:50',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
+        $previousBatch = PharmacyBatch::select('id', 'number', 'pharmacy_storage_id')
+            ->where('pharmacy_storage_id', $request->medicine_storage_id)->latest()->first();
+
+        $batchNumber = 0;
+        if ($previousBatch != null) {
+            $batchNumber = $previousBatch->number + 1;
+        }
+
         PharmacyBatch::create([
             'pharmacy_storage_id' => $request->medicine_storage_id,
             'price' => $request->price,
-            'number' => $request->number,
+            'number' => $batchNumber,
             'quantity' => $request->quantity,
             'barcode' => $request->barcode,
 //            'date_of_entry' => $request->date_of_entry,
@@ -151,7 +159,10 @@ class MedicinesController extends Controller
         ]);
 
         $medicine_storage = PharmacyStorage::where('id', $request->medicine_storage_id)->first();
-        $medicine_storage->update(['quantity' => $medicine_storage->quantity + $request->quantity]);
+        $medicine_storage->update([
+            'quantity' => $medicine_storage->quantity + $request->quantity,
+            'price' => $request->price
+        ]);
         $medicine_storage->save();
         return $this->success();
     }
