@@ -12,6 +12,7 @@ class Repository extends Model
 {
     use HasFactory;
     protected $guarded = [];
+    protected $hidden=['updated_at','created_at','owner_id'];
 
     public function owner()
     {

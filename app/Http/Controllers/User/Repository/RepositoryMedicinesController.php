@@ -1,50 +1,25 @@
 <?php
 
-namespace App\Http\Controllers\User\Pharmacy;
+namespace App\Http\Controllers\User\Repository;
 
 use App\Http\Controllers\Controller;
-use App\Models\Drug\Drug;
-use App\Models\Transaction\PharmacyBatch;
-use App\Models\Transaction\PharmacyStorage;
+use App\Models\RepositoryBatch;
+use App\Models\Transaction\RepositoryStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class MedicinesController extends Controller
+class RepositoryMedicinesController extends Controller
 {
-    public function getMedicines(): JsonResponse
-    {
-        $medicines = Drug::select('id', 'brand_name')->get();
-        return $this->success($medicines);
-    }
-
-    public function searchMedicines(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'brand_name' => 'required|string',
-        ]);
-        if ($validator->fails())
-            return $this->error($validator->errors()->first());
-        try {
-            $medicines = Drug::where('brand_name', 'LIKE', '%' . $request->brand_name . '%')
-                ->select('id', 'brand_name')->get();
-            if ($medicines == null)
-                return $this->error();
-            return $this->success($medicines);
-        } catch (\Exception $e) {
-            return $this->error($e);
-        }
-    }
-
     public function getStoredMedicines(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'pharmacy_id' => 'required|exists:pharmacies,id',
+            'repository_id' => 'required|exists:repositories,id',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
-        $medicines = PharmacyStorage::where('pharmacy_id', $request->pharmacy_id)
+        $medicines = RepositoryStorage::where('repository_id', $request->repository_id)
             ->with(['drug' => function ($q) {
                 return $q->select('id', 'brand_name');
             }])->get();
@@ -63,14 +38,14 @@ class MedicinesController extends Controller
     public function searchStoredMedicines(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'pharmacy_id' => 'required|exists:pharmacies,id',
+            'repository_id' => 'required|exists:repositories,id',
             'brand_name' => 'required|string',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
         try {
-            $medicines = PharmacyStorage::where('pharmacy_id', $request->pharmacy_id)
+            $medicines = RepositoryStorage::where('repository_id', $request->repository_id)
                 ->with(['drug' => function ($q) use ($request) {
                     return $q->where('brand_name', 'LIKE', '%' . $request->brand_name . '%')
                         ->select('id', 'brand_name');
@@ -96,31 +71,37 @@ class MedicinesController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'drug_id' => 'required|numeric|exists:drugs,id',
-            'pharmacy_id' => 'required|numeric|exists:pharmacies,id',
+            'repository_id' => 'required|numeric|exists:repositories,id',
             'price' => 'required|numeric',
             'quantity' => 'required|numeric',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        $drug_storage = PharmacyStorage::create([
+
+        $drug_storage=RepositoryStorage::where('drug_id',$request->drug_id)->where('repository_id',$request->repository_id)->get();
+        if(count($drug_storage)>0){
+            return $this->error('Medicine storage already exists');
+        }
+
+        RepositoryStorage::create([
             'drug_id' => $request->drug_id,
-            'pharmacy_id' => $request->pharmacy_id,
+            'repository_id' => $request->repository_id,
             'price' => $request->price,
             'quantity' => $request->quantity,
         ]);
-        return $this->success($drug_storage);
+        return $this->success();
     }
 
     public function updateMedicine(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'medicine_storage_id' => 'required|numeric|exists:pharmacy_storages,id',
+            'medicine_storage_id' => 'required|numeric|exists:repository_storages,id',
             'price' => 'required|numeric',
             'quantity' => 'required|numeric',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        PharmacyStorage::where('id', $request->medicine_storage_id)->update([
+        RepositoryStorage::where('id', $request->medicine_storage_id)->update([
             'price' => $request->price,
             'quantity' => $request->quantity,
         ]);
@@ -130,26 +111,26 @@ class MedicinesController extends Controller
     public function createBatchMedicine(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'medicine_storage_id' => 'required|numeric|exists:pharmacy_storages,id',
+            'medicine_storage_id' => 'required|numeric|exists:repository_storages,id',
             'price' => 'required|numeric',
-            'quantity' => 'required|numeric',
-            'barcode' => 'required|numeric|min:5|max:15',
+            'quantity' => 'required|numeric|min:1',
+            'barcode' => 'required|string|min:5|max:15',
             'date_of_entry' => 'required|string|max:50',
             'expired_date' => 'required|string|max:50',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
-        $previousBatch = PharmacyBatch::select('id', 'number', 'pharmacy_storage_id')
-            ->where('pharmacy_storage_id', $request->medicine_storage_id)->latest()->first();
+        $previousBatch = RepositoryBatch::select('id', 'number', 'repository_storage_id')
+            ->where('repository_storage_id', $request->medicine_storage_id)->latest()->first();
 
         $batchNumber = 0;
         if ($previousBatch != null) {
             $batchNumber = $previousBatch->number + 1;
         }
 
-        PharmacyBatch::create([
-            'pharmacy_storage_id' => $request->medicine_storage_id,
+        RepositoryBatch::create([
+            'repository_storage_id' => $request->medicine_storage_id,
             'price' => $request->price,
             'number' => $batchNumber,
             'quantity' => $request->quantity,
@@ -158,7 +139,7 @@ class MedicinesController extends Controller
             'expired_date' => $request->expired_date,
         ]);
 
-        $medicine_storage = PharmacyStorage::where('id', $request->medicine_storage_id)->first();
+        $medicine_storage = RepositoryStorage::where('id', $request->medicine_storage_id)->first();
         $medicine_storage->update([
             'quantity' => $medicine_storage->quantity + $request->quantity,
             'price' => $request->price
