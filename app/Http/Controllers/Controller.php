@@ -45,4 +45,8 @@ class Controller extends BaseController
         ], $statusCode);
     }
 
+    function unAuthenticated(){
+        return $this->error('unAuthenticated');
+    }
+
 }
