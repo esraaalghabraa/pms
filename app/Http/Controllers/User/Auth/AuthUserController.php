@@ -45,7 +45,7 @@ class AuthUserController extends Controller
             return $this->success('send verify code successfully');
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error();
+            return $this->error($e);
         }
     }
 

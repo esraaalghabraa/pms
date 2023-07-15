@@ -26,6 +26,10 @@ class DrugController extends Controller
         $validator = Validator::make($request->all(), [
             'brand_name' => 'required|string|max:50',
             'scientific_name' => 'required|string|max:50',
+            'capacity' => 'required|string|max:50',
+            'titer' => 'required|string|max:50',
+            'contraindications' => 'required|string',
+            'is_prescription' => 'required',
             'category_id' => 'required|exists:categories,id',
             'dosage_form_id' => 'required|exists:dosage_forms,id',
             'manufacture_company_id' => 'required|exists:manufacture_companies,id',
@@ -38,6 +42,10 @@ class DrugController extends Controller
        $drug =  Drug::create([
             'brand_name' => $request->brand_name,
             'scientific_name' => $request->scientific_name,
+           'capacity' => $request->capacity,
+           'titer' => $request->scientific_name,
+           'is_prescription' => $request->is_prescription,
+           'contraindications' => $request->contraindications,
             'category_id' => $request->category_id,
             'dosage_form_id' => $request->dosage_form_id,
             'manufacture_company_id' => $request->manufacture_company_id
@@ -68,6 +76,10 @@ class DrugController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:drugs',
             'brand_name' => 'required|string|max:50',
+            'capacity' => 'required|string|max:50',
+            'titer' => 'required|string|max:50',
+            'is_prescription' => 'required',
+            'contraindications' => 'required|string',
             'scientific_name' => 'required|string|max:50',
             'category_id' => 'required|exists:categories,id',
             'dosage_form_id' => 'required|exists:dosage_forms,id',
@@ -86,6 +98,10 @@ class DrugController extends Controller
         $drug->update([
             'brand_name' => $request->brand_name,
             'scientific_name' => $request->scientific_name,
+            'capacity' => $request->capacity,
+            'titer' => $request->scientific_name,
+            'is_prescription' => $request->is_prescription,
+            'contraindications' => $request->contraindications,
             'category_id' => $request->category_id,
             'dosage_form_id' => $request->dosage_form_id,
             'manufacture_company_id' => $request->manufacture_company_id
