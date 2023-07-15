@@ -60,11 +60,11 @@ class ScientificMaterialController extends Controller
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-     $drugs = ScientificMaterial::with(['drugs'=>function($q)
-     {return $q->select('drugs.id','brand_name');}])
-         ->where('id', $request->id)
-         ->select('id')
-         ->first();
+         $drugs = ScientificMaterial::with(['drugs'=>function($q)
+         {return $q->select('drugs.id','brand_name');}])
+             ->where('id', $request->id)
+             ->select('id')
+             ->first();
 
      return $this->success($drugs);
     }
