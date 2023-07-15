@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User\Pharmacy;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\StoredMedicinesResource;
 use App\Models\Transaction\PharmacyBatch;
 use App\Models\Transaction\PharmacyStorage;
 use Illuminate\Http\JsonResponse;
@@ -23,16 +24,7 @@ class PharmacyMedicinesController extends Controller
             ->with(['drug' => function ($q) {
                 return $q->select('id', 'brand_name');
             }])->get();
-
-        $formattedMedicines = $medicines->map(function ($medicine) {
-            return [
-                'id' => $medicine->id,
-                'quantity' => $medicine->quantity,
-                'price' => $medicine->price,
-                'brand_name' => $medicine->drug->brand_name,
-            ];
-        });
-        return $this->success($formattedMedicines);
+        return $this->success(new StoredMedicinesResource($medicines));
     }
 
     public function searchStoredMedicines(Request $request): JsonResponse
@@ -52,16 +44,7 @@ class PharmacyMedicinesController extends Controller
                 }])->get();
             if ($medicines == null)
                 return $this->error();
-
-            $formattedMedicines = $medicines->map(function ($medicine) {
-                return [
-                    'id' => $medicine->id,
-                    'quantity' => $medicine->quantity,
-                    'price' => $medicine->price,
-                    'brand_name' => $medicine->drug->brand_name,
-                ];
-            });
-            return $this->success($formattedMedicines);
+            return $this->success(new StoredMedicinesResource($medicines));
         } catch (\Exception $e) {
             return $this->error($e);
         }

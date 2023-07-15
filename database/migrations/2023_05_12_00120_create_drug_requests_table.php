@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,7 +17,7 @@ return new class extends Migration
         Schema::create('drug_requests', function (Blueprint $table) {
             $table->id();
             $table->enum('status',['pending','accepting','rejecting']);
-            $table->date('date');
+            $table->date('date')->default(Date::now());
             $table->date('date_delivery')->nullable();
             $table->foreignId('buy_bill_id')->constrained('buy_bills');
             $table->foreignId('repository_id')->constrained('repositories');

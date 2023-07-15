@@ -12,6 +12,8 @@ class RepositoryStorage extends Model
     use HasFactory;
 
     protected $guarded=[];
+    protected $hidden=['updated_at','created_at', 'repository_id','pivot'];
+
 
     public function drug()
     {

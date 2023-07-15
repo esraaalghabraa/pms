@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\Repository\RepositoryController;
 use App\Http\Controllers\User\Auth\AuthUserController;
+use App\Http\Controllers\User\Pharmacy\MedicinesBuyOrderController;
 use App\Http\Controllers\User\Pharmacy\PharmacyMedicinesController;
 use App\Http\Controllers\User\Pharmacy\RepositoriesController;
 use App\Http\Controllers\User\Repository\PharmaciesController;
@@ -54,6 +55,14 @@ Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
         Route::prefix('repositories')->controller(RepositoriesController::class)
             ->group(function () {
                 Route::get('get', 'getRepositories');
+                Route::post('search', 'searchRepository');
+                Route::post('get-repository', 'getRepository');
+            });
+        Route::prefix('buy-orders')->controller(MedicinesBuyOrderController::class)
+            ->group(function () {
+                Route::post('get', 'get');
+                Route::post('get-medicines-order', 'getMedicinesOrder');
+                Route::post('send', 'sendOrder');
                 Route::post('get-repository', 'getRepository');
             });
     });
