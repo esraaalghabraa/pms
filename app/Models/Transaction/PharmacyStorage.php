@@ -11,6 +11,7 @@ class PharmacyStorage extends Model
 {
     use HasFactory;
     protected $guarded=[];
+    protected $hidden=['updated_at','created_at', 'pharmacy_id','pivot'];
 
     public function drug()
     {

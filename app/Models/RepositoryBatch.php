@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class RepositoryBatch extends Model
 {
     use HasFactory;
+    protected $guarded=[];
 }
