@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum','abilities:frontuser'])->group(function (){
 
     Route::controller(RepositoryController::class)
         ->prefix('repository')->group(function () {
+            Route::post('create-request','createRequest');
             Route::post('create-drug-storage','createDrugStorage');
             Route::post('create-batch','createBatchDrug');
         });

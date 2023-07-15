@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Repository;
 
 use App\Http\Controllers\Controller;
+use App\Models\Drug\AddDrugRequest;
 use App\Models\Transaction\DrugRequest;
 use App\Models\Transaction\RepositoryBatch;
 use App\Models\Transaction\RepositoryStorage;
@@ -16,32 +17,37 @@ class RepositoryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'repository_id' => 'required|numeric|exists:repositories,id',
-            'pharmacy_id' => 'required|numeric|exists:pharmacies,id',
-            'items' => 'required',
-            'status' => 'required|string|max:50',
-            'date' => 'required'
+            'brand_name' => 'required|string|max:50',
+            'scientific_name' => 'required|string|max:50',
+            'capacity' => 'required|string|max:50',
+            'titer' => 'required|string|max:50',
+            'contraindications' => 'required|string',
+            'side_effects' => 'required|string',
+            'is_prescription' => 'required',
+            'category' => 'required|exists:categories,id',
+            'dosage_form' => 'required|exists:dosage_forms,id',
+            'manufacture_company' => 'required|string',
+            'scientific_materials'=> 'required|string',
+            'therapeutic_effects'=> 'required|string',
+            'indications'=> 'required|string',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        $drug_request = DrugRequest::create([
+        AddDrugRequest::create([
             'repository_id' => $request->repository_id,
-            'pharmacy_id' => $request->pharmacy_id,
-            'status' => $request->status,
-            'date' => $request->date,
+            'brand_name' => $request->brand_name,
+            'scientific_name' => $request->scientific_name,
+            'capacity' => $request->capacity,
+            'titer' => $request->scientific_name,
+            'side_effects' => $request->side_effects,
+            'is_prescription' => $request->is_prescription,
+            'contraindications' => $request->contraindications,
+            'category' => $request->category,
+            'dosage_form' => $request->dosage_form,
+            'manufacture_company' => $request->manufacture_company
         ]);
-        $items = json_decode($request->items);
-
-        foreach ($items as $item) {
-            RequestItem::create([
-                'repository_storage_id' => $item->repository_storage_id,
-                'quantity' => $item->quantity,
-                'price' => $item->price,
-                'drug_request_id' => $drug_request->id,
-            ]);
-        }
         return $this->success();
     }
-
 
     public function createDrugStorage(Request $request)
     {
@@ -87,5 +93,4 @@ class RepositoryController extends Controller
         $repo->save();
         return $this->success($drug_request);
     }
-
 }
