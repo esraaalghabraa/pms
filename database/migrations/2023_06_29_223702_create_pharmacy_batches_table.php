@@ -16,10 +16,11 @@ return new class extends Migration
         Schema::create('pharmacy_batches', function (Blueprint $table) {
             $table->id();
             $table->string('barcode');
-            $table->integer('batch_number');
+            $table->integer('number');
             $table->date('expired_date');
             $table->date('date_of_entry');
-            $table->integer('batch_quantity');
+            $table->integer('quantity');
+            $table->integer('price');
             $table->foreignId('pharmacy_storage_id')->constrained('pharmacy_storages');
             $table->timestamps();
         });
