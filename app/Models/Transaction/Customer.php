@@ -2,6 +2,7 @@
 
 namespace App\Models\Transaction;
 
+use App\Models\PharmacyCustomer;
 use App\Models\Registration\Pharmacy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,13 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Customer extends Model
 {
     use HasFactory;
+    protected $guarded=[];
 
-    function saleBills() : HasMany{
-        return  $this->hasMany(SaleBill::class,);
+        function pharmacies() : BelongsToMany{
+        return  $this->belongsToMany(Pharmacy::class,PharmacyCustomer::class);
     }
-
-    function pharmacies() : BelongsToMany{
-        return  $this->belongsToMany(Pharmacy::class,SaleBill::class);
+        function saleBills() : HasMany{
+        return  $this->hasMany(SaleBill::class,'customer_id');
     }
 
 }
