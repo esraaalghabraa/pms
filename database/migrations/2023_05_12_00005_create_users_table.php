@@ -22,7 +22,6 @@ return new class extends Migration
             $table->string('photo',255)->nullable();
             $table->string('verify_code')->nullable();
             $table->rememberToken();
-            $table->foreignId('role_id')->constrained();
             $table->timestamps();
         });
     }
