@@ -35,7 +35,7 @@ class RequestSentEvent implements ShouldBroadcast
     public function broadcastWith():array
     {
         return[
-            'user_id'=>$this->requestRegistration->owner_id,
+            'user_id'=>$this->requestRegistration->user_id,
             'message'=>$this->requestRegistration->toArray(),
         ];
     }

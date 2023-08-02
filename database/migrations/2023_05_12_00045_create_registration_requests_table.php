@@ -21,7 +21,7 @@ return new class extends Migration
             $table->enum('status',['pending','accepting','rejecting']);
             $table->string('phone_number',30);
             $table->string('address',30);
-            $table->foreignId('owner_id')->constrained('users');
+            $table->foreignId('user_id')->constrained('users');
             $table->softDeletes();
             $table->timestamps();
         });

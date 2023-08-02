@@ -34,7 +34,7 @@ class RequestsUserController extends Controller
                 'status' => $request->status,
                 'phone_number' => $request->phone_number,
                 'address' => $request->address,
-                'owner_id' => auth()->user()->id,
+                'user_id' => auth()->user()->id,
             ]);
             DB::commit();
             $this->sendNotificationToAdmin($requestRegister);

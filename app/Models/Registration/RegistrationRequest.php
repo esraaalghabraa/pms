@@ -21,6 +21,6 @@ class RegistrationRequest extends Model
     }
 
     function user() : BelongsTo{
-        return $this->belongsTo(User::class,'owner_id');
+        return $this->belongsTo(User::class,'user_id');
     }
 }
