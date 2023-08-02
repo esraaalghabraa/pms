@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin\Requests\Registrations;
 
 use App\Http\Controllers\Controller;
 use App\Models\Registration\Pharmacy;
+use App\Models\Registration\PharmacyUser;
 use App\Models\Registration\RegistrationRequest;
 use App\Models\Registration\Repository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -61,18 +63,21 @@ class RequestRegistrationController extends Controller
             if (!$order)
                 return $this->error();
             if ($order->type == 'pharmacy'){
-                Pharmacy::create([
+               $pharmacy = Pharmacy::create([
                     'name' => $order->name,
                     'address' => $order->address,
                     'phone_number' => $order->phone_number,
-                    'owner_id' => $order->owner_id,
+                ]);
+                PharmacyUser::create([
+                   'user_id' =>Auth::user()->id,
+                    'pharmacy_id'=>$pharmacy->id
                 ]);
             }else{
                 Repository::create([
                     'name' => $order->name,
                     'address' => $order->address,
                     'phone_number' => $order->phone_number,
-                    'owner_id' => $order->owner_id,
+                    'user_id' => $order->user_id,
                 ]);
             }
             $order->update(['status'=>'accepting']);
