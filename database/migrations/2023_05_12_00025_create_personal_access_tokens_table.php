@@ -13,15 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('pharmacy_batches', function (Blueprint $table) {
+        Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
-            $table->string('barcode');
-            $table->integer('number');
-            $table->integer('price');
-            $table->date('expired_date');
-            $table->date('date_of_entry');
-            $table->integer('quantity');
-            $table->foreignId('pharmacy_storage_id')->constrained('pharmacy_storages');
+            $table->morphs('tokenable');
+            $table->string('name');
+            $table->string('token', 64)->unique();
+            $table->text('abilities')->nullable();
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
     }
@@ -33,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pharmacy_batches');
+        Schema::dropIfExists('personal_access_tokens');
     }
 };

@@ -13,15 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('pharmacy_batches', function (Blueprint $table) {
+        Schema::create('item_batch', function (Blueprint $table) {
             $table->id();
-            $table->string('barcode');
-            $table->integer('number');
-            $table->integer('price');
-            $table->date('expired_date');
-            $table->date('date_of_entry');
             $table->integer('quantity');
-            $table->foreignId('pharmacy_storage_id')->constrained('pharmacy_storages');
+            $table->foreignId('item_id')->constrained('request_items');
+            $table->foreignId('batch_id')->constrained('repository_batches');
             $table->timestamps();
         });
     }
@@ -33,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pharmacy_batches');
+        Schema::dropIfExists('item_batch');
     }
 };
