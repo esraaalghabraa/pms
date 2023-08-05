@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('quantity');
             $table->string('price');
             $table->date('date');
-            $table->foreignId('pharmacy_storage_id')->constrained('pharmacy_storages');
+            $table->foreignId('pharmacy_batch_id')->constrained('pharmacy_batches');
             $table->foreignId('sale_bill_id')->constrained('sale_bills');
             $table->timestamps();
         });

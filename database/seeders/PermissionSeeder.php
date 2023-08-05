@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 
-use App\Models\Registration\Permission;
 use App\Models\Registration\Role;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
 {
@@ -17,18 +17,37 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-        $allRoles = Role::all()->keyBy('id');
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        $adminRole = Role::where('id',Role::ROLE_ADMIN)->first();
+        $supplierRole = Role::where('id',Role::ROLE_Supplier)->first();
 
-        $permissions = [
-            'create-request' => [Role::ROLE_Supplier],
-            'bookings-manage' => [Role::ROLE_Supplier],
+        $pharma_permissions = [
+            'drugs-pharma' ,
+            'orders-pharma' ,
+            'employee-pharma' ,
+            'bills-pharma' ,
+            'sales-pharma' ,
+            'stock-pharma' ,
+        ];
+        foreach ($pharma_permissions as $permission)   {
+            $pharma_permission= Permission::create([
+                'name' => $permission,
+                'guard_name' => 'user'
+            ]);
+            $adminRole->givePermissionTo($pharma_permission);
+        }
+
+        $repo_permissions = [
+            'drugs-repo' ,
+            'orders-repo'
         ];
 
-        foreach ($permissions as $key => $roles) {
-            $permission = Permission::create(['name' => $key]);
-            foreach ($roles as $role) {
-                $allRoles[$role]->permissions()->attach($permission->id);
+            foreach ($repo_permissions as $permission) {
+               $repo_permission = Permission::create([
+                    'name' => $permission,
+                   'guard_name' => 'user'
+                ]);
+                $supplierRole->givePermissionTo($repo_permission);
             }
-        }
     }
 }

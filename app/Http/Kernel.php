@@ -2,7 +2,7 @@
 
 namespace App\Http;
 
-use App\Http\Middleware\GateDefineMiddleware;
+use App\Http\Middleware\CheckRolePermission;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -44,7 +44,7 @@ class Kernel extends HttpKernel
            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            GateDefineMiddleware::class,
+
         ],
     ];
 
@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+        'check_permission' => CheckRolePermission::class
     ];
 }

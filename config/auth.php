@@ -16,6 +16,9 @@ return [
     'defaults' => [
         'guard' => 'web',
         'passwords' => 'users',
+    ],[
+        'guard' => 'user',
+        'passwords' => 'users',
     ],
 
     /*
@@ -44,9 +47,9 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
-        'frontuser' => [
+        'user' => [
             'driver' => 'session',
-            'provider' => 'frontusers',
+            'provider' => 'users',
         ],
     ],
 
@@ -75,10 +78,6 @@ return [
         'admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class,
-        ],
-        'frontusers' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\Registration\FrontUser::class,
         ],
 
         // 'users' => [

@@ -7,14 +7,25 @@ use App\Http\Resources\StoredMedicinesResource;
 use App\Models\RepositoryBatch;
 use App\Models\Transaction\PharmacyBatch;
 use App\Models\Transaction\PharmacyStorage;
+use Illuminate\Auth\Access\AuthorizationException;
 use App\Models\Transaction\RepositoryStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Validator;
 
 class PharmacyMedicinesController extends Controller
 {
+
+    public function __construct()
+    {
+        try {
+            $this->authorize(['drugs-repo','orders-pharma','employee-pharma','bills-pharma','sales-pharma','stock-pharma']);
+
+        } catch (AuthorizationException $e) {
+            return $this->error('unAuthorized',403);
+        }
+    }
+
     public function getStoredMedicines(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -93,7 +104,7 @@ class PharmacyMedicinesController extends Controller
         return $this->success();
     }
 
-    public function createBatchMedicine1(Request $request): JsonResponse
+    public function createBatchMedicine(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'medicine_storage_id' => 'required|numeric|exists:pharmacy_storages,id',
@@ -120,7 +131,7 @@ class PharmacyMedicinesController extends Controller
             'number' => $batchNumber,
             'quantity' => $request->quantity,
             'barcode' => $request->barcode,
-//            'date_of_entry' => $request->date_of_entry,
+            'date_of_entry' => $request->date_of_entry,
             'expired_date' => $request->expired_date,
         ]);
 
@@ -204,5 +215,6 @@ class PharmacyMedicinesController extends Controller
 
         return $this->success();
     }
+
 
 }

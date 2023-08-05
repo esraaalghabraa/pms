@@ -3,8 +3,15 @@
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\User\Auth\AuthUserController;
+use App\Http\Controllers\User\Pharmacy\CustomerController;
+use App\Http\Controllers\User\Pharmacy\EmployeeController;
 use App\Http\Controllers\User\Pharmacy\MedicinesBuyOrderController;
 use App\Http\Controllers\User\Pharmacy\PharmacyMedicinesController;
+use App\Http\Controllers\User\Pharmacy\RepositoriesController;
+use App\Http\Controllers\User\Pharmacy\RoleController;
+use App\Http\Controllers\User\Pharmacy\SaleBillsController;
+use App\Http\Controllers\Repository\RepositoryController;
+use App\Http\Controllers\User\Repository\PharmaciesController;
 use App\Http\Controllers\User\Repository\MedicinesSaleOrderController;
 use App\Http\Controllers\User\Repository\RepositoryMedicinesController;
 use App\Http\Controllers\User\Requests\MedicinesController;
@@ -21,7 +28,6 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
 
 Route::controller(AuthUserController::class)
     ->prefix('auth')->as('auth.')
@@ -64,6 +70,39 @@ Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
                 Route::post('receive', 'receive');
             });
         });
+        Route::prefix('customers')->controller(CustomerController::class)
+            ->group(function (){
+                Route::post('get-all','getAll');
+                Route::post('create','create');
+                Route::post('saleBile','saleBile');
+                Route::post('update','update');
+                Route::post('delete','delete');
+                Route::post('get','getCustomer');
+            });
+        Route::prefix('employees')->controller(EmployeeController::class)
+            ->group(function (){
+                Route::post('get-all','getAll');
+                Route::post('delete','delete');
+                Route::post('get','get');
+                Route::post('create','create');
+            });
+        Route::prefix('roles')->controller(RoleController::class)
+            ->group(function (){
+                Route::post('get-all','getAll');
+                Route::post('create','createRole');
+                Route::post('update','update');
+                Route::post('createe','createPermission');
+                Route::post('destroy','destroy');
+            });
+        Route::prefix('sale-bills')->controller(SaleBillsController::class)
+            ->group(function (){
+                Route::post('get-all-daily','getDailyBills');
+                Route::post('get-all-customers','getCustomerBills');
+                Route::post('create','create');
+                Route::post('update','update');
+                Route::post('delete','delete');
+                Route::post('get','getBill');
+            });
     });
 
     Route::prefix('repository')->group(function () {
@@ -97,7 +136,6 @@ Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
         ->group(function () {
             Route::get('get', 'getMedicines');
             Route::post('search', 'searchMedicines');
-            Route::post('get-medicine', 'getMedicine');
         });
 
     Route::controller(RequestsUserController::class)->prefix('requests')

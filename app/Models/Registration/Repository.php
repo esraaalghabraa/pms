@@ -7,6 +7,7 @@ use App\Models\Transaction\DrugRequest;
 use App\Models\Transaction\RepositoryStorage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -14,11 +15,11 @@ class Repository extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $hidden=['updated_at','created_at','owner_id'];
+    protected $hidden=['updated_at','created_at','user_id'];
 
-    public function owner()
+    public function owner():BelongsTo
     {
-        return $this->belongsTo(Role::class,'owner_id');
+        return $this->belongsTo(User::class,'user_id');
     }
 
     public function medicineStorages(): HasMany
