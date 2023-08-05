@@ -61,7 +61,21 @@ class ManufactureCompanyController extends Controller
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        $drugs = Drug::where('manufacture_company_id',$request->id)->get();
+        $drugs = ManufactureCompany::with(['drugs' => function ($q) {
+            return $q->with('category')
+                ->with(['dosageForm'=>function($q){
+                    return $q->select('id','name');
+                }])
+                ->with('manufactureCompany')
+                ->with('indications')
+                ->with('scientificMaterials')
+                ->with('therapeuticEffects')
+                ->get();
+        }])
+            ->where('id', $request->id)
+            ->select('id')
+            ->first()->drugs;
+
         return $this->success($drugs);
     }
 

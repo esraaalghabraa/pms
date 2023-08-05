@@ -25,9 +25,9 @@ class MedicinesController extends Controller
             'category' => 'required|exists:categories,id',
             'dosage_form' => 'required|exists:dosage_forms,id',
             'manufacture_company' => 'required|string',
-            'scientific_materials'=> 'required|string',
-            'therapeutic_effects'=> 'required|string',
-            'indications'=> 'required|string',
+            'scientific_materials' => 'required|string',
+            'therapeutic_effects' => 'required|string',
+            'indications' => 'required|string',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
@@ -66,6 +66,28 @@ class MedicinesController extends Controller
             if ($medicines == null)
                 return $this->error();
             return $this->success($medicines);
+        } catch (\Exception $e) {
+            return $this->error($e);
+        }
+    }
+
+    public function getMedicine(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:drugs',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+        try {
+            $medicine = Drug::with('category')
+                ->with('manufactureCompany')
+                ->with('indications')
+                ->with('scientificMaterials')
+                ->with('therapeuticEffects')
+                ->find($request->id);
+            if ($medicine == null)
+                return $this->error();
+            return $this->success($medicine);
         } catch (\Exception $e) {
             return $this->error($e);
         }

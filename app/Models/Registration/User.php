@@ -15,9 +15,7 @@ class User extends Authenticatable
     protected $guarded=[];
     protected $hidden=['password','email_verified_at','rememberToken','created_at','updated_at','pivot'];
     const USER_TOKEN = "userToken";
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+
 
     protected function Photo(): Attribute{
         return Attribute::make(

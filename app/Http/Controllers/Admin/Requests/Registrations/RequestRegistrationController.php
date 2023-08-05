@@ -14,38 +14,33 @@ class RequestRegistrationController extends Controller
 {
     public function get()
     {
-        $ordersPharmacy = RegistrationRequest::where('type','pharmacy')->get();
-        $ordersRepository = RegistrationRequest::where('type','repository')->get();
-        $data['Pharmacies']=$ordersPharmacy;
-        $data['Repositories']=$ordersRepository;
-        return $this->success($data);
+        $orders = RegistrationRequest::get();
+        return $this->success($orders);
     }
 
     public function getPending()
     {
-        $ordersPharmacy = RegistrationRequest::where(['type'=>'pharmacy','status'=>'pending'])->get();
-        $ordersRepository = RegistrationRequest::where(['type'=>'repository','status'=>'pending'])->get();
-        $data['Pharmacies']=$ordersPharmacy;
-        $data['Repositories']=$ordersRepository;
-        return $this->success($data);
+        $orders = RegistrationRequest::where('status','pending')->get();
+        return $this->success($orders);
     }
 
     public function getAccepting()
     {
-        $ordersPharmacy = RegistrationRequest::where(['type'=>'pharmacy','status'=>'accepting'])->get();
-        $ordersRepository = RegistrationRequest::where(['type'=>'repository','status'=>'accepting'])->get();
-        $data['Pharmacies']=$ordersPharmacy;
-        $data['Repositories']=$ordersRepository;
-        return $this->success($data);
+        $orders = RegistrationRequest::where('status','accepting')->get();
+        return $this->success($orders);
     }
 
     public function getRejecting()
     {
-        $ordersPharmacy = RegistrationRequest::where(['type'=>'pharmacy','status'=>'rejecting'])->get();
-        $ordersRepository = RegistrationRequest::where(['type'=>'repository','status'=>'rejecting'])->get();
-        $data['Pharmacies']=$ordersPharmacy;
-        $data['Repositories']=$ordersRepository;
-        return $this->success($data);
+        $orders = RegistrationRequest::where('status','rejecting')->get();
+        return $this->success($orders);
+    }
+
+    public function getArchived()
+    {
+        $orders = RegistrationRequest::onlyTrashed()->get();
+
+        return $this->success($orders);
     }
 
     public function accept(Request $request)
@@ -58,8 +53,8 @@ class RequestRegistrationController extends Controller
             if ($validator->fails())
                 return $this->error($validator->errors()->first());
             $order = RegistrationRequest::where('id', $request->id)->first();
-            if (!$order)
-                return $this->error();
+            if ($order->status!='pending')
+                return $this->error('you can not accept Order because its status is ' .$order->status);
             if ($order->type == 'pharmacy'){
                 Pharmacy::create([
                     'name' => $order->name,
@@ -78,7 +73,7 @@ class RequestRegistrationController extends Controller
             $order->update(['status'=>'accepting']);
             $order->save();
             DB::commit();
-            return $this->success('Done Accept Your Request');
+            return $this->success();
         } catch (\Exception $e) {
             DB::rollback();
             return $this->error($e);
@@ -93,9 +88,11 @@ class RequestRegistrationController extends Controller
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         $order = RegistrationRequest::where('id', $request->id)->first();
+        if ($order->status!='pending')
+            return $this->error('you can not reject Order because its status is ' .$order->status);
         $order->update(['status'=>'rejecting']);
         $order->save();
-        return $this->success('Sorry, your account within PMS has been canceled due to fake information within the registration account');
+        return $this->success();
     }
 
     public function delete(Request $request)
@@ -105,18 +102,22 @@ class RequestRegistrationController extends Controller
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        RegistrationRequest::onlyTrashed()->where('id', $request->id)->first()->forceDelete();
+        $order =    RegistrationRequest::onlyTrashed()->where('id', $request->id)->first();
+        if (!$order)
+            return $this->error('you must archive request before delete it');
+        $order->forceDelete();
+        $order->save();
         return $this->success();
     }
 
     public function deleteAll(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'archive_requests' => 'required',
+            'archive_requests_ids' => 'required',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        $archiveRequests = json_decode($request->archive_requests);
+        $archiveRequests = json_decode(json_decode($request->archive_requests_ids));
         foreach ($archiveRequests as $archiveRequest) {
             $Request = RegistrationRequest::onlyTrashed()
                 ->where('id', $archiveRequest->id)
@@ -130,15 +131,6 @@ class RequestRegistrationController extends Controller
         return $this->success();
     }
 
-    public function getArchived()
-    {
-        $orders = RegistrationRequest::onlyTrashed()->get();
-
-        if (!$orders)
-            return $this->error('are no archived requests');
-        return $this->success($orders);
-    }
-
     public function addToArchived(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -149,6 +141,7 @@ class RequestRegistrationController extends Controller
         RegistrationRequest::where('id', $request->id)->first()->delete();
         return $this->success();
     }
+
     public function returnFromArchived(Request $request)
     {
         $validator = Validator::make($request->all(), [

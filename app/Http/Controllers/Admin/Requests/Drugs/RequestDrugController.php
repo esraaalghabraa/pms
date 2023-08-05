@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\Requests\Drugs;
 
 use App\Http\Controllers\Admin\Drugs\DrugController;
 use App\Http\Controllers\Controller;
-use App\Models\AddDrugRequest;
+use App\Models\Drug\AddDrugRequest;
 use App\Models\Drug\Drug;
 use App\Models\Registration\Pharmacy;
 use App\Models\Registration\RegistrationRequest;

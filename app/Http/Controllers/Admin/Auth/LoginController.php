@@ -22,7 +22,15 @@ class LoginController extends Controller
         if (Auth::guard('admin')->attempt(['email'=>$input['email'],'password'=>$input['password']])){
             $user = Auth::guard('admin')->user();
             $token = $user->createToken('myApp', ['admin'])->plainTextToken;
-            return $this->success($token);
+            $user->setRememberToken($token);
+            $user->save();
+            $response = [
+                'name'=>$user->name,
+                'email'=>$user->email,
+                'photo'=>$user->photo,
+                'token'=>$token,
+            ];
+            return $this->success($response);
         }
 
         return $this->error();
@@ -30,7 +38,7 @@ class LoginController extends Controller
 
     public function logout(): JsonResponse
     {
-        $user = Auth::user();
-        return response()->json(["data"=>$user]);
+        auth()->user()->currentAccessToken()->delete();
+        return $this->success();
     }
 }

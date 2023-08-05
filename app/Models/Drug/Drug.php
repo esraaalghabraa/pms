@@ -15,7 +15,7 @@ class Drug extends Model
 {
     use HasFactory;
     protected $guarded=[];
-    protected $hidden=['updated_at','created_at','pivot'];
+    protected $hidden=['updated_at','created_at','pivot','category_id','dosage_form_id','manufacture_company_id'];
 
 
     public function category():BelongsTo

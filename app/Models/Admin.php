@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\RequestNotification;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,7 +15,15 @@ class Admin extends Authenticatable
     protected $guard = 'admin';
     const ADMIN_TOKEN = "adminToken";
     protected $guarded=[];
+    protected $hidden=['created_at','updated_at'];
 
+
+
+    protected function Photo(): Attribute{
+        return Attribute::make(
+            get:fn ($value) => ($value != null) ? asset('assets/images/admins/'. $value) : asset('assets/images/users/default_user.png')
+        );
+    }
 
     public function routeNotificationForOneSignal():array{
         return ['tags'=>['key'=>'adminUserId','relation'=>'=','value'=>(string)(1)]];

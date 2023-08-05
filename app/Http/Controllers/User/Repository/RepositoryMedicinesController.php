@@ -8,6 +8,8 @@ use App\Models\RepositoryBatch;
 use App\Models\Transaction\RepositoryStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Validator;
 
 class RepositoryMedicinesController extends Controller
@@ -50,29 +52,18 @@ class RepositoryMedicinesController extends Controller
         }
     }
 
-    public function createMedicineStorage(Request $request): JsonResponse
+    public function getStoredMedicine(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'drug_id' => 'required|numeric|exists:drugs,id',
-            'repository_id' => 'required|numeric|exists:repositories,id',
-            'price' => 'required|numeric',
-            'quantity' => 'required|numeric',
+            'id' => 'required|exists:repository_storages',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
-        $drug_storage=RepositoryStorage::where('drug_id',$request->drug_id)->where('repository_id',$request->repository_id)->get();
-        if(count($drug_storage)>0){
-            return $this->error('Medicine storage already exists');
-        }
-
-        RepositoryStorage::create([
-            'drug_id' => $request->drug_id,
-            'repository_id' => $request->repository_id,
-            'price' => $request->price,
-            'quantity' => $request->quantity,
-        ]);
-        return $this->success();
+        $medicine = RepositoryStorage::with(['drug' => function ($q) {
+            return $q->select('id', 'brand_name', 'scientific_name');
+        }])->with(['batches'])->find($request->id);
+        return $this->success($medicine);
     }
 
     public function updateMedicine(Request $request): JsonResponse
@@ -80,13 +71,11 @@ class RepositoryMedicinesController extends Controller
         $validator = Validator::make($request->all(), [
             'medicine_storage_id' => 'required|numeric|exists:repository_storages,id',
             'price' => 'required|numeric',
-            'quantity' => 'required|numeric',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         RepositoryStorage::where('id', $request->medicine_storage_id)->update([
             'price' => $request->price,
-            'quantity' => $request->quantity,
         ]);
         return $this->success();
     }
@@ -94,18 +83,28 @@ class RepositoryMedicinesController extends Controller
     public function createBatchMedicine(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'medicine_storage_id' => 'required|numeric|exists:repository_storages,id',
+            'medicine_id' => 'required|numeric|exists:drugs,id',
+            'repository_id' => 'required|numeric|exists:repositories,id',
             'price' => 'required|numeric',
             'quantity' => 'required|numeric|min:1',
             'barcode' => 'required|string|min:5|max:15',
-            'date_of_entry' => 'required|string|max:50',
             'expired_date' => 'required|string|max:50',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
+        $repositoryStorage = RepositoryStorage::where('drug_id', $request->drug_id)
+            ->where('repository_id', $request->repository_id)->get();
+        if (count($repositoryStorage) == 0) {
+            $repositoryStorage[0] = RepositoryStorage::create([
+                'quantity' => $request->quantity,
+                'price' => $request->price,
+                'drug_id' => $request->medicine_id,
+                'repository_id' => $request->repository_id,
+            ]);
+        }
         $previousBatch = RepositoryBatch::select('id', 'number', 'repository_storage_id')
-            ->where('repository_storage_id', $request->medicine_storage_id)->latest()->first();
+            ->where('repository_storage_id', $repositoryStorage[0]->id)->latest()->first();
 
         $batchNumber = 0;
         if ($previousBatch != null) {
@@ -113,21 +112,43 @@ class RepositoryMedicinesController extends Controller
         }
 
         RepositoryBatch::create([
-            'repository_storage_id' => $request->medicine_storage_id,
+            'repository_storage_id' => $repositoryStorage[0]->id,
             'price' => $request->price,
             'number' => $batchNumber,
             'quantity' => $request->quantity,
             'barcode' => $request->barcode,
-//            'date_of_entry' => $request->date_of_entry,
+            'date_of_entry' => Date::now(),
             'expired_date' => $request->expired_date,
         ]);
 
-        $medicine_storage = RepositoryStorage::where('id', $request->medicine_storage_id)->first();
-        $medicine_storage->update([
-            'quantity' => $medicine_storage->quantity + $request->quantity,
-            'price' => $request->price
+        return $this->success();
+    }
+
+    public function updateBatchMedicine(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|numeric|exists:repository_batches',
+            'price' => 'required|numeric',
+            'quantity' => 'required|numeric|min:1',
+            'barcode' => 'required|string|min:5|max:15',
+            'expired_date' => 'required|string|max:50',
         ]);
-        $medicine_storage->save();
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+
+        $batch = RepositoryBatch::where('id', $request->id)->first();
+        $repositoryStorage = RepositoryStorage::where('id', $batch->repository_storage_id)->first();
+        $repositoryStorage->quantity -= $batch->quantity;
+        $repositoryStorage->quantity += $request->quantity;
+        $repositoryStorage->save();
+
+        RepositoryBatch::where('id', $request->id)->update([
+            'price' => $request->price,
+            'quantity' => $request->quantity,
+            'barcode' => $request->barcode,
+            'expired_date' => $request->expired_date,
+        ]);
+
         return $this->success();
     }
 

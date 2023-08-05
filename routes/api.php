@@ -1,12 +1,11 @@
 <?php
 
 
-use App\Http\Controllers\Repository\RepositoryController;
+use App\Http\Controllers\Controller;
 use App\Http\Controllers\User\Auth\AuthUserController;
 use App\Http\Controllers\User\Pharmacy\MedicinesBuyOrderController;
 use App\Http\Controllers\User\Pharmacy\PharmacyMedicinesController;
-use App\Http\Controllers\User\Pharmacy\RepositoriesController;
-use App\Http\Controllers\User\Repository\PharmaciesController;
+use App\Http\Controllers\User\Repository\MedicinesSaleOrderController;
 use App\Http\Controllers\User\Repository\RepositoryMedicinesController;
 use App\Http\Controllers\User\Requests\MedicinesController;
 use App\Http\Controllers\User\Requests\RequestsUserController;
@@ -23,7 +22,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//Route::get('login',[Controller::class,'unAuthenticated'])->name('login');
 
 Route::controller(AuthUserController::class)
     ->prefix('auth')->as('auth.')
@@ -50,21 +48,22 @@ Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
                 Route::post('create', 'createMedicineStorage');
                 Route::post('update', 'updateMedicine');
                 Route::post('create-batch', 'createBatchMedicine');
+                Route::post('update-batch', 'updateBatchMedicine');
             });
 
-        Route::prefix('repositories')->controller(RepositoriesController::class)
-            ->group(function () {
+        Route::controller(MedicinesBuyOrderController::class)->group(function () {
+            Route::prefix('repositories')->group(function () {
                 Route::get('get', 'getRepositories');
                 Route::post('search', 'searchRepository');
                 Route::post('get-repository', 'getRepository');
             });
-        Route::prefix('buy-orders')->controller(MedicinesBuyOrderController::class)
-            ->group(function () {
+            Route::prefix('buy-orders')->group(function () {
                 Route::post('get', 'get');
                 Route::post('get-medicines-order', 'getMedicinesOrder');
                 Route::post('send', 'sendOrder');
-                Route::post('get-repository', 'getRepository');
+                Route::post('receive', 'receive');
             });
+        });
     });
 
     Route::prefix('repository')->group(function () {
@@ -72,20 +71,25 @@ Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
             Route::prefix('stored-medicines')->group(function () {
                 Route::post('get', 'getStoredMedicines');
                 Route::post('search', 'searchStoredMedicines');
+                Route::post('get-stored-medicine', 'getStoredMedicine');
                 Route::post('create', 'createMedicineStorage');
                 Route::post('update', 'updateMedicine');
                 Route::post('create-batch', 'createBatchMedicine');
+                Route::post('update-batch', 'updateBatchMedicine');
             });
         });
 
-        Route::prefix('pharmacies')->controller(PharmaciesController::class)->group(function () {
-            Route::get('get', 'getPharmacies');
-            Route::post('get-pharmacy', 'getPharmacy');
-        });
-
-        Route::controller(RepositoryController::class)->group(function () {
-            Route::post('create-drug-storage', 'createDrugStorage');
-            Route::post('create-batch', 'createBatchDrug');
+        Route::controller(MedicinesSaleOrderController::class)->group(function () {
+            Route::prefix('pharmacies')->group(function () {
+                Route::get('get', 'getPharmacies');
+                Route::post('get-pharmacy', 'getPharmacy');
+            });
+            Route::prefix('sale-orders')->group(function () {
+                Route::post('get', 'getMedicinesOrders');
+                Route::post('get-medicines-order', 'getMedicinesOrder');
+                Route::post('accept', 'acceptOrder');
+                Route::post('reject', 'rejectOrder');
+            });
         });
     });
 
@@ -93,6 +97,7 @@ Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
         ->group(function () {
             Route::get('get', 'getMedicines');
             Route::post('search', 'searchMedicines');
+            Route::post('get-medicine', 'getMedicine');
         });
 
     Route::controller(RequestsUserController::class)->prefix('requests')

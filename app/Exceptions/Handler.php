@@ -31,44 +31,28 @@ class Handler extends ExceptionHandler
         'password_confirmation',
     ];
 
-//    /**
-//     * Register the exception handling callbacks for the application.
-//     *
-//     * @return void
-//     */
-//    public function register()
-//    {
-//        $this->reportable(function (Throwable $e) {
-//            //
-//        });
-//    }
 
     public function render($request, Throwable $e)
     {
         if ($e instanceof MissingAbilityException){
             return response()->json([
-                "errors"=>[
-                    'status'=>401,
-                    'message'=>'Unauthenticated'
-                ]
+                'data' => null,
+                'success' => false,
+                'message' => 'Unauthorized',
             ],401);
         }
         $ex = $this->prepareException($e);
         if ($ex instanceof HttpRequestException){
             return $ex->getResponse();
         }elseif ($ex instanceof AuthenticationException){
-            return $this->unauthenticated($request,$ex);
+            return response()->json([
+                'data' => null,
+                'success' => false,
+                'message' => 'unAuthenticated'
+            ], 403 );
         }elseif ($ex instanceof ValidationException){
             return $this->convertExceptionToResponse($ex);
         }
         return $this->prepareResponse($request,$ex);
-    }
-
-    public function unauthentticated(){
-        return response()->json(["errors"=>[
-            'status'=>401,
-            'message'=>'Unauthenticated'
-        ]
-        ],401);
     }
 }

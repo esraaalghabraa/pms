@@ -1,15 +1,17 @@
 <?php
 
-namespace App\Models\Drug;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class IndicationDrug extends Model
+class ItemBatch extends Model
 {
     use HasFactory;
-    protected $table='indications_drugs';
+    protected $table='item_batch';
     protected $guarded=[];
-    protected $hidden=['created_at','updated_at'];
+    protected $hidden=['created_at','updated_at','pivot'];
+
+
 
 }

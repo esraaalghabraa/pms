@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DrugRequest extends Model
 {
+    // TODO fix date_delivery and total
     use HasFactory;
 
     protected $guarded = [];

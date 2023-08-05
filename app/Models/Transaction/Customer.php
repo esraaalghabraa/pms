@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Customer extends Model
 {
     use HasFactory;
+    protected $guarded=[];
+    protected $hidden=['created_at','updated_at'];
 
     function saleBills() : HasMany{
         return  $this->hasMany(SaleBill::class,);

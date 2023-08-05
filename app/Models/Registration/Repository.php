@@ -3,6 +3,7 @@
 namespace App\Models\Registration;
 
 use App\Models\Drug\Drug;
+use App\Models\Transaction\DrugRequest;
 use App\Models\Transaction\RepositoryStorage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,5 +29,10 @@ class Repository extends Model
     public function drugs():BelongsToMany
     {
         return $this->belongsToMany(Drug::class,RepositoryStorage::class);
+    }
+
+    public function drugRequests():HasMany
+    {
+        return $this->hasMany(DrugRequest::class);
     }
 }

@@ -13,10 +13,8 @@ use App\Http\Controllers\Admin\Requests\Drugs\RequestDrugController;
 use App\Http\Controllers\Admin\Requests\Registrations\RequestRegistrationController;
 use Illuminate\Support\Facades\Route;
 
-                /************          Login Admin          ************/
     Route::post('login',[LoginController::class,'login']);
 
-                /************        Abilities Admin        ************/
     Route::middleware(['auth:sanctum','abilities:admin'])->group(function (){
         Route::post('logout',[LoginController::class,'logout']);
 
@@ -67,6 +65,8 @@ use Illuminate\Support\Facades\Route;
 
              Route::controller(DosageFormController::class)->prefix('DosageForm')->group(function (){
                  Route::get('get-all','get');
+                 Route::get('get-units-types','getUnitsAndTypes');
+                 Route::post('get-drugs','getDrugs');
                  Route::post('create','create');
                  Route::post('update','update');
                  Route::post('delete','delete');

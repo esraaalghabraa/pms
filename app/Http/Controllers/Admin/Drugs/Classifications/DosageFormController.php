@@ -17,16 +17,30 @@ class DosageFormController extends Controller
         return $this->success($dosage_forms);
     }
 
+    public function getUnitsAndTypes()
+    {
+        $units = DosageForm::select('unit')->distinct()->get();
+        $types = DosageForm::select('type')->distinct()->get();
+        return $this->success([
+            'units'=>$units,
+            'types'=>$types,
+        ]);
+    }
+
 
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:50|unique:dosage_forms,name',
+            'unit' => 'required|string|max:50|exists:dosage_forms,unit',
+            'type' => 'required|string|max:50|exists:dosage_forms,type',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         DosageForm::create([
-            'name' => $request->name
+            'name' => $request->name,
+            'unit' => $request->unit,
+            'type' => $request->type,
         ]);
 
         return $this->success();
@@ -37,12 +51,16 @@ class DosageFormController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:dosage_forms',
             'name' => 'required|string|max:50|unique:dosage_forms,name,' . $request->id,
+            'unit' => 'required|string|max:50|exists:dosage_forms,unit',
+            'type' => 'required|string|max:50|exists:dosage_forms,type',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         $dosage_form = DosageForm::where('id', $request->id)->first();
         $dosage_form->update([
-            'name' => $request->name
+            'name' => $request->name,
+            'unit' => $request->unit,
+            'type' => $request->type,
         ]);
 
         return $this->success();
@@ -67,11 +85,19 @@ class DosageFormController extends Controller
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         $drugs = DosageForm::with(['drugs' => function ($q) {
-            return $q->select('drugs.id', 'brand_name');
+            return $q->with('category')
+                ->with(['dosageForm'=>function($q){
+                    return $q->select('id','name');
+                }])
+                ->with('manufactureCompany')
+                ->with('indications')
+                ->with('scientificMaterials')
+                ->with('therapeuticEffects')
+                ->get();
         }])
             ->where('id', $request->id)
             ->select('id')
-            ->first();
+            ->first()->drugs;
 
         return $this->success($drugs);
     }

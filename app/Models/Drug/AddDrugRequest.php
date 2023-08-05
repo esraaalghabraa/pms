@@ -14,6 +14,8 @@ class AddDrugRequest extends Model
     use SoftDeletes;
 
     protected $guarded=[];
+    protected $hidden=['created_at','updated_at'];
+
 
     function repository() : BelongsTo{
         return $this->belongsTo(Repository::class,'repository_id');

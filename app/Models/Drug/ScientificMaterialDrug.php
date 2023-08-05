@@ -10,4 +10,6 @@ class ScientificMaterialDrug extends Model
     use HasFactory;
     protected $table='scientific_materials_drugs';
     protected $guarded=[];
+    protected $hidden=['created_at','updated_at'];
+
 }

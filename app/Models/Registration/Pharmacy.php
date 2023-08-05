@@ -3,6 +3,7 @@
 namespace App\Models\Registration;
 
 use App\Models\Drug\Drug;
+use App\Models\Transaction\DrugRequest;
 use App\Models\Transaction\PharmacyStorage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,8 @@ class Pharmacy extends Model
 {
     use HasFactory;
     protected $guarded=[];
+    protected $hidden=['created_at','updated_at'];
+
 
     public function owner():BelongsTo
     {
@@ -25,4 +28,8 @@ class Pharmacy extends Model
         return $this->belongsToMany(Drug::class,PharmacyStorage::class);
     }
 
+    public function drugRequests():HasMany
+    {
+        return $this->hasMany(DrugRequest::class);
+    }
 }

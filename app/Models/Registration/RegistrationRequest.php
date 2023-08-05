@@ -13,8 +13,9 @@ class RegistrationRequest extends Model
     use HasFactory;
     use SoftDeletes;
     protected $guarded=[];
+    protected $hidden=['created_at','updated_at','deleted_at'];
 
-    protected function Photo(): Attribute{
+    protected function DocumentPhoto(): Attribute{
         return Attribute::make(
             get:fn ($value) => ($value != null) ? asset('assets/images/documents/'. $value) : asset('assets/images/documents/default_document.png')
         );
