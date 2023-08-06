@@ -2,6 +2,7 @@
 
 namespace App\Models\Registration;
 
+use App\Notifications\RequestNotification;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -32,5 +33,8 @@ class User extends Authenticatable
         return $this->belongsToMany(Pharmacy::class,'pharmacies_users','user_id','pharmacy_id',);
     }
 
+    public function sendNewRequestNotification(array $data):void{
+        $this->notify(new RequestNotification($data));
+    }
 
 }

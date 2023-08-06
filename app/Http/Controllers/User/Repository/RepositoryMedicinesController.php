@@ -93,8 +93,10 @@ class RepositoryMedicinesController extends Controller
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
-        $repositoryStorage = RepositoryStorage::where('drug_id', $request->drug_id)
-            ->where('repository_id', $request->repository_id)->get();
+        $repositoryStorage = RepositoryStorage::where([
+            'drug_id'=>$request->medicine_id,
+            'repository_id'=>$request->repository_id
+        ])->get();
         if (count($repositoryStorage) == 0) {
             $repositoryStorage[0] = RepositoryStorage::create([
                 'quantity' => $request->quantity,
@@ -106,9 +108,16 @@ class RepositoryMedicinesController extends Controller
         $previousBatch = RepositoryBatch::select('id', 'number', 'repository_storage_id')
             ->where('repository_storage_id', $repositoryStorage[0]->id)->latest()->first();
 
-        $batchNumber = 0;
+        $batchNumber = 1;
         if ($previousBatch != null) {
             $batchNumber = $previousBatch->number + 1;
+            RepositoryStorage::where('id', $repositoryStorage[0]->id)
+            ->update([
+                'quantity' => $repositoryStorage[0]->quantity + $request->quantity,
+                'price' => $request->price,
+                'drug_id' => $request->medicine_id,
+                'repository_id' => $request->repository_id,
+            ]);
         }
 
         RepositoryBatch::create([

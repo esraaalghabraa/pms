@@ -7,11 +7,8 @@ use App\Http\Controllers\User\Pharmacy\CustomerController;
 use App\Http\Controllers\User\Pharmacy\EmployeeController;
 use App\Http\Controllers\User\Pharmacy\MedicinesBuyOrderController;
 use App\Http\Controllers\User\Pharmacy\PharmacyMedicinesController;
-use App\Http\Controllers\User\Pharmacy\RepositoriesController;
 use App\Http\Controllers\User\Pharmacy\RoleController;
 use App\Http\Controllers\User\Pharmacy\SaleBillsController;
-use App\Http\Controllers\Repository\RepositoryController;
-use App\Http\Controllers\User\Repository\PharmaciesController;
 use App\Http\Controllers\User\Repository\MedicinesSaleOrderController;
 use App\Http\Controllers\User\Repository\RepositoryMedicinesController;
 use App\Http\Controllers\User\Requests\MedicinesController;
@@ -37,14 +34,14 @@ Route::controller(AuthUserController::class)
         Route::get('login_with_token', 'loginWithToken');
         Route::post('send-verify-code', 'sendVerifyCode');
         Route::post('verify-code', 'verifyCode');
-        Route::middleware(['auth:sanctum', 'abilities:frontuser'])
+        Route::middleware(['auth:sanctum', 'abilities:user'])
             ->group(function () {
                 Route::get('logout', 'logout');
                 Route::post('add_info', 'addInfo');
             });
     });
 
-Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
+Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
 
     Route::prefix('pharmacy')->group(function () {
         Route::prefix('stored-medicines')->controller(PharmacyMedicinesController::class)
@@ -91,7 +88,7 @@ Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
                 Route::post('get-all','getAll');
                 Route::post('create','createRole');
                 Route::post('update','update');
-                Route::post('createe','createPermission');
+                Route::post('create','createPermission');
                 Route::post('destroy','destroy');
             });
         Route::prefix('sale-bills')->controller(SaleBillsController::class)
@@ -136,16 +133,7 @@ Route::middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
         ->group(function () {
             Route::get('get', 'getMedicines');
             Route::post('search', 'searchMedicines');
-        });
-
-    Route::controller(RequestsUserController::class)->prefix('requests')
-        ->middleware(['auth:sanctum', 'abilities:frontuser'])->group(function () {
-            Route::get('get-requests', 'getRequests');
-            Route::get('get-archived-requests', 'getArchivedRequests');
-            Route::post('create-request', 'createRequestRegistration');
-            Route::post('reject-request', 'rejectRequest');
-            Route::post('accept-request', 'acceptRequest');
-            Route::post('delete-request', 'deleteRequest');
+            Route::post('get-medicine', 'getMedicine');
         });
 
     Route::controller(RequestsUserController::class)

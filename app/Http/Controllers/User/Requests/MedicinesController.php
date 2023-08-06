@@ -15,34 +15,15 @@ class MedicinesController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'repository_id' => 'required|numeric|exists:repositories,id',
-            'brand_name' => 'required|string|max:50',
-            'scientific_name' => 'required|string|max:50',
-            'capacity' => 'required|string|max:50',
-            'titer' => 'required|string|max:50',
-            'contraindications' => 'required|string',
-            'side_effects' => 'required|string',
-            'is_prescription' => 'required',
-            'category' => 'required|exists:categories,id',
-            'dosage_form' => 'required|exists:dosage_forms,id',
-            'manufacture_company' => 'required|string',
-            'scientific_materials' => 'required|string',
-            'therapeutic_effects' => 'required|string',
-            'indications' => 'required|string',
+            'drug_name' => 'required|string|max:50',
+            'notes' => 'required|string',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         AddDrugRequest::create([
             'repository_id' => $request->repository_id,
-            'brand_name' => $request->brand_name,
-            'scientific_name' => $request->scientific_name,
-            'capacity' => $request->capacity,
-            'titer' => $request->scientific_name,
-            'side_effects' => $request->side_effects,
-            'is_prescription' => $request->is_prescription,
-            'contraindications' => $request->contraindications,
-            'category' => $request->category,
-            'dosage_form' => $request->dosage_form,
-            'manufacture_company' => $request->manufacture_company
+            'drug_name' => $request->drug_name,
+            'notes' => $request->notes,
         ]);
         return $this->success();
     }

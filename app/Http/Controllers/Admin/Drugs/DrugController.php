@@ -156,24 +156,7 @@ class DrugController extends Controller
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        $drug = Drug::where('id', $request->id)
-            ->with('indications')
-            ->with('scientificMaterials')
-            ->with('therapeuticEffects')
-            ->first();
-        if ($drug->scientificMaterials)
-            foreach ($drug->scientificMaterials as $scientific_material) {
-                ScientificMaterialDrug::where('scientific_material_id', $scientific_material->id)->delete();
-            }
-        if ($drug->therapeuticEffects)
-            foreach ($drug->therapeuticEffects as $therapeutic_effect) {
-                TherapeuticEffectDrug::where('therapeutic_effect_id', $therapeutic_effect->id)->delete();
-            }
-        if ($drug->indications)
-            foreach ($drug->indications as $indication) {
-                IndicationDrug::where('indication_id', $indication->id)->delete();
-            }
-        $drug->delete();
+        Drug::where('id', $request->id)->first()->delete();
         return $this->success();
     }
 

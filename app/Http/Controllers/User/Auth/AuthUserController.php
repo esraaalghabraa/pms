@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Mail\TestMail;
 use App\Models\Registration\Role;
 use App\Models\Registration\User;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +15,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Nette\Utils\Random;
-use Spatie\Permission\Models\Permission;
 
 class AuthUserController extends Controller
 {
@@ -92,6 +90,7 @@ class AuthUserController extends Controller
                 return $this->error('verifyCode not Correct');
             $token = $user->remember_token = $user->createToken(User::USER_TOKEN, ['user'])->plainTextToken;
             $user->setRememberToken($token);
+            $user->verify_code=null;
             $user->save();
             DB::commit();
             return $this->success($token, 'success');
@@ -105,9 +104,8 @@ class AuthUserController extends Controller
     {
         Auth::user()->currentAccessToken()->delete();
         return $this->success();
-//        auth()->user()->currentAccessToken()->delete();
-//        return $this->success(null, 'Logout successfully');
+        //TODO delete account
+//        auth()->user()->delete();
+//        return $this->success(null, 'delete account successfully');
     }
-
-
 }

@@ -50,13 +50,11 @@ class RequestsUserController extends Controller
      */
     private function sendNotificationToAdmin(RegistrationRequest $requestRegister){
         event(new RequestSentEvent($requestRegister));
-
         $user = auth()->user();
         $adminUserId = 1;
 
         $admin = Admin::where('id',$adminUserId)->first();
-
-        $admin->sendNewRequestNotification([
+        $user->sendNewRequestNotification([
             'requestData'=>[
                 'senderName'=>$user->name,
                 'requestType'=>$requestRegister->type,

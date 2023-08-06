@@ -16,31 +16,41 @@ class RequestRegistrationController extends Controller
 {
     public function get()
     {
-        $orders = RegistrationRequest::get();
+        $orders = RegistrationRequest::with(['user'=>function($q){
+            return $q->select('id','name');
+        }])->get();
         return $this->success($orders);
     }
 
     public function getPending()
     {
-        $orders = RegistrationRequest::where('status','pending')->get();
+        $orders = RegistrationRequest::with(['user'=>function($q){
+            return $q->select('id','name');
+        }])->where('status','pending')->get();
         return $this->success($orders);
     }
 
     public function getAccepting()
     {
-        $orders = RegistrationRequest::where('status','accepting')->get();
+        $orders = RegistrationRequest::with(['user'=>function($q){
+            return $q->select('id','name');
+        }])->where('status','accepting')->get();
         return $this->success($orders);
     }
 
     public function getRejecting()
     {
-        $orders = RegistrationRequest::where('status','rejecting')->get();
+        $orders = RegistrationRequest::with(['user'=>function($q){
+            return $q->select('id','name');
+        }])->where('status','rejecting')->get();
         return $this->success($orders);
     }
 
     public function getArchived()
     {
-        $orders = RegistrationRequest::onlyTrashed()->get();
+        $orders = RegistrationRequest::onlyTrashed()->with(['user'=>function($q){
+            return $q->select('id','name');
+        }])->get();
 
         return $this->success($orders);
     }

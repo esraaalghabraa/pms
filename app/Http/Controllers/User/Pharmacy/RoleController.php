@@ -21,7 +21,7 @@ class RoleController extends Controller
         return $this->success($roles);
     }
 
-    public function createRole(Request $request)
+    public function create(Request $request)
     {
         $input = $request->all();
         $validator = Validator::make($input, [

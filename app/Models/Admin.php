@@ -29,7 +29,7 @@ class Admin extends Authenticatable
         return ['tags'=>['key'=>'adminUserId','relation'=>'=','value'=>(string)(1)]];
     }
 
-    public function sendNewRequestNotification(array $data):void{
-        $this->notify(new RequestNotification($data));
-    }
+//    public function sendNewRequestNotification(array $data):void{
+//        $this->notify(new RequestNotification($data));
+//    }
 }
