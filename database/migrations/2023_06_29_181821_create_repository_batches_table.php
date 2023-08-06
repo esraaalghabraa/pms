@@ -20,6 +20,7 @@ return new class extends Migration
             $table->date('expired_date');
             $table->date('date_of_entry');
             $table->integer('quantity');
+            $table->integer('exists_quantity');
             $table->integer('price');
             $table->foreignId('repository_storage_id')->constrained('repository_storages');
             $table->timestamps();

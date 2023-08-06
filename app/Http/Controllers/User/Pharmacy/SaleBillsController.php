@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 
 class SaleBillsController extends Controller
 {
+    // TODO ESRAA
     public function getDailyBills(Request $request){
         $validator =  Validator::make($request->all(),[
             'pharmacy_id' => 'required|exists:pharmacies,id',

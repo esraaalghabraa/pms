@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\User\Requests;
+namespace App\Http\Controllers\User\Auth;
 
 use App\Events\RequestSentEvent;
 use App\Http\Controllers\Controller;

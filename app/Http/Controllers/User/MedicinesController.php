@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\User\Requests;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Drug\AddDrugRequest;
@@ -11,23 +11,6 @@ use Illuminate\Support\Facades\Validator;
 
 class MedicinesController extends Controller
 {
-    public function createRequest(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'repository_id' => 'required|numeric|exists:repositories,id',
-            'drug_name' => 'required|string|max:50',
-            'notes' => 'required|string',
-        ]);
-        if ($validator->fails())
-            return $this->error($validator->errors()->first());
-        AddDrugRequest::create([
-            'repository_id' => $request->repository_id,
-            'drug_name' => $request->drug_name,
-            'notes' => $request->notes,
-        ]);
-        return $this->success();
-    }
-
     public function getMedicines(): JsonResponse
     {
         $medicines = Drug::select('id', 'brand_name')->get();
@@ -73,5 +56,4 @@ class MedicinesController extends Controller
             return $this->error($e);
         }
     }
-
 }

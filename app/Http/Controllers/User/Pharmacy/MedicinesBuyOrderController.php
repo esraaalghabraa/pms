@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 
 class MedicinesBuyOrderController extends Controller
 {
+    // TODO OSAMA
     public function getRepositories(): JsonResponse
     {
         $repositories = Repository::select('id', 'name')->get();
@@ -158,20 +159,23 @@ class MedicinesBuyOrderController extends Controller
                     'drug_request_id' => $medicineRequest->id,
                 ]);
                 $batches = RepositoryBatch::where('repository_storage_id', $medicine->repository_storage_id)
-                    ->whereNot('quantity', 0)->orderby('expired_date')->get();
+                    ->whereNot('exists_quantity', 0)->orderby('expired_date')->get();
                 $quantity = $medicine->quantity;
 
                 foreach ($batches as $batch) {
                     if ($quantity == 0)
                         break;
-                    if ($quantity >= $batch->quantity) {
-                        $quantityOfBatch = $batch->quantity;
+                    if ($quantity >= $batch->exists_quantity) {
+                        $quantityOfBatch = $batch->exists_quantity;
                         $quantity -= $quantityOfBatch;
                     } else {
                         $quantityOfBatch = $quantity;
                         $quantity = 0;
                     }
-                    RepositoryBatch::where('id', $batch->id)->update(['quantity' => $batch->quantity - $quantityOfBatch]);
+                    RepositoryBatch::where('id', $batch->id)
+                        ->update([
+                            'exists_quantity' => $batch->exists_quantity - $quantityOfBatch
+                        ]);
                     $repositoryStorage = RepositoryStorage::where('id', $medicine->repository_storage_id)->first();
                     $repositoryStorage->quantity -= $quantityOfBatch;
                     $repositoryStorage->save();
@@ -202,14 +206,10 @@ class MedicinesBuyOrderController extends Controller
             if ($medicineRequest->status != 'accepting') {
                 return $this->error("you can't receipt Order because repository not accept it");
             }
-//            $medicineRequest->status = 'receipted';
-//            $medicineRequest->save();
+            $medicineRequest->status = 'receipted';
+            $medicineRequest->save();
 
-            $selectedMedicines = json_decode(json_decode($request->order_items));
-            foreach ($selectedMedicines as $medicine)
-                RequestItem::where('id', $medicine->id)->update([
-                    'quantity' => $medicine->quantity,
-                ]);
+            // TODO
 
             return $this->success();
         } catch (\Exception $e) {

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
 {
+    // TODO ESRAA
     public function getAll(Request $request){
         $validator = Validator::make($request->all(), [
             'pharmacy_id' => 'required|exists:pharmacies,id',

@@ -13,6 +13,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class RoleController extends Controller
 {
+    // TODO ESRAA
     public function getAll()
     {
         $roles = Role::with('permissions')->get();

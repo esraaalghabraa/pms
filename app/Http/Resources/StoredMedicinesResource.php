@@ -19,7 +19,7 @@ class StoredMedicinesResource extends JsonResource
                 'id' => $medicine->id,
                 'quantity' => $medicine->quantity,
                 'price' => $medicine->price,
-                'brand_name' => $medicine->drug!=null?$medicine->drug->brand_name:'',
+                'brand_name' => $medicine->drug != null ? $medicine->drug->brand_name : '',
             ];
         });
     }

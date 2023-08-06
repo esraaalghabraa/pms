@@ -22,6 +22,7 @@ use Spatie\Permission\Models\Permission;
 
 class EmployeeController extends Controller
 {
+    // TODO ESRAA
     public function __construct()
     {
         $this->middleware('check_permission:employee-pharma');

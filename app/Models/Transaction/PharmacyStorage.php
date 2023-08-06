@@ -21,4 +21,8 @@ class PharmacyStorage extends Model
     {
         return $this->belongsTo(Pharmacy::class);
     }
+    public function batches()
+    {
+        return $this->hasMany(PharmacyBatch::class);
+    }
 }

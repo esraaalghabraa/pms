@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PharmacyBatch extends Model
 {
+    // TODO duplicated
     protected $guarded=[];
     protected $hidden = ['created_at', 'updated_at', 'pivot'];
 

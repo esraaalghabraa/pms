@@ -1,8 +1,9 @@
 <?php
 
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\User\Auth\AuthUserController;
+use App\Http\Controllers\User\Auth\RequestsUserController;
+use App\Http\Controllers\User\MedicinesController;
 use App\Http\Controllers\User\Pharmacy\CustomerController;
 use App\Http\Controllers\User\Pharmacy\EmployeeController;
 use App\Http\Controllers\User\Pharmacy\MedicinesBuyOrderController;
@@ -11,8 +12,7 @@ use App\Http\Controllers\User\Pharmacy\RoleController;
 use App\Http\Controllers\User\Pharmacy\SaleBillsController;
 use App\Http\Controllers\User\Repository\MedicinesSaleOrderController;
 use App\Http\Controllers\User\Repository\RepositoryMedicinesController;
-use App\Http\Controllers\User\Requests\MedicinesController;
-use App\Http\Controllers\User\Requests\RequestsUserController;
+use App\Http\Controllers\User\Repository\RequestsMedicinesController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
             ->group(function () {
                 Route::post('get', 'getStoredMedicines');
                 Route::post('search', 'searchStoredMedicines');
+                Route::post('get-stored-medicine', 'getStoredMedicine');
                 Route::post('create', 'createMedicineStorage');
                 Route::post('update', 'updateMedicine');
                 Route::post('create-batch', 'createBatchMedicine');
@@ -126,6 +127,11 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
                 Route::post('accept', 'acceptOrder');
                 Route::post('reject', 'rejectOrder');
             });
+        });
+
+        Route::controller(RequestsMedicinesController::class)->prefix('requests-medicines')->group(function () {
+            Route::post('get', 'get');
+            Route::post('create', 'create');
         });
     });
 

@@ -62,7 +62,7 @@ class MedicinesSaleOrderController extends Controller
         }
     }
 
-    public function getMedicinesOrder(Request $request): JsonResponse
+    public function getMedicinesOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:drug_requests',
@@ -82,8 +82,10 @@ class MedicinesSaleOrderController extends Controller
                 }])->first();
             $requestItems = $medicineRequest->requestItems->map(function ($requestItem) {
                 $batches = $requestItem->batches->map(function ($batch) use ($requestItem) {
-                    $quantity = ItemBatch::where('item_id', $requestItem->id)->where('batch_id', $batch->id)
-                        ->first()->quantity;
+                    $quantity = ItemBatch::where([
+                        'item_id'=> $requestItem->id,
+                        'batch_id'=> $batch->id
+                    ])->first()->quantity;
                     return [
                         'id' => $batch->id,
                         'barcode' => $batch->barcode,
@@ -94,8 +96,8 @@ class MedicinesSaleOrderController extends Controller
                 return [
                     'id' => $requestItem->id,
                     'quantity' => $requestItem->quantity,
-                    'price' => $requestItem->id,
-                    'repository_storage_id' => $requestItem->id,
+                    'price' => $requestItem->price,
+                    'repository_storage_id' => $requestItem->repository_storage_id,
                     'batches' => $batches,
                 ];
             });
@@ -124,16 +126,22 @@ class MedicinesSaleOrderController extends Controller
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         try {
-            DrugRequest::where('id', $request->id)->update([
+            $DrugRequest=DrugRequest::find($request->id);
+            if ($DrugRequest->status!='pending')
+                return $this->error('you can not accept Order because its status is ' .$DrugRequest->status);
+
+            $DrugRequest->update([
                 'status' => 'accepting',
                 'date_delivery' => $request->date_delivery,
             ]);
+            $DrugRequest->save();
             return $this->success();
         } catch (\Exception $e) {
             return $this->error($e);
         }
     }
 
+    // TODO fix rejectOrder from all order
     public function rejectOrder(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [

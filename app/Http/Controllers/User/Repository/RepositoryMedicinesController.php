@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 
 class RepositoryMedicinesController extends Controller
 {
+    // TODO add other get
     public function getStoredMedicines(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -29,6 +30,21 @@ class RepositoryMedicinesController extends Controller
         return $this->success(new StoredMedicinesResource($medicines));
     }
 
+    public function getStoredMedicine(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:repository_storages',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+
+        $medicine = RepositoryStorage::with(['drug' => function ($q) {
+            return $q->select('id', 'brand_name', 'scientific_name');
+        }])->with(['batches'])->find($request->id);
+        return $this->success($medicine);
+    }
+
+    // TODO fix null value
     public function searchStoredMedicines(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -50,20 +66,6 @@ class RepositoryMedicinesController extends Controller
         } catch (\Exception $e) {
             return $this->error($e);
         }
-    }
-
-    public function getStoredMedicine(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:repository_storages',
-        ]);
-        if ($validator->fails())
-            return $this->error($validator->errors()->first());
-
-        $medicine = RepositoryStorage::with(['drug' => function ($q) {
-            return $q->select('id', 'brand_name', 'scientific_name');
-        }])->with(['batches'])->find($request->id);
-        return $this->success($medicine);
     }
 
     public function updateMedicine(Request $request): JsonResponse
@@ -115,8 +117,6 @@ class RepositoryMedicinesController extends Controller
             ->update([
                 'quantity' => $repositoryStorage[0]->quantity + $request->quantity,
                 'price' => $request->price,
-                'drug_id' => $request->medicine_id,
-                'repository_id' => $request->repository_id,
             ]);
         }
 
@@ -125,36 +125,9 @@ class RepositoryMedicinesController extends Controller
             'price' => $request->price,
             'number' => $batchNumber,
             'quantity' => $request->quantity,
+            'exists_quantity' => $request->quantity,
             'barcode' => $request->barcode,
             'date_of_entry' => Date::now(),
-            'expired_date' => $request->expired_date,
-        ]);
-
-        return $this->success();
-    }
-
-    public function updateBatchMedicine(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'id' => 'required|numeric|exists:repository_batches',
-            'price' => 'required|numeric',
-            'quantity' => 'required|numeric|min:1',
-            'barcode' => 'required|string|min:5|max:15',
-            'expired_date' => 'required|string|max:50',
-        ]);
-        if ($validator->fails())
-            return $this->error($validator->errors()->first());
-
-        $batch = RepositoryBatch::where('id', $request->id)->first();
-        $repositoryStorage = RepositoryStorage::where('id', $batch->repository_storage_id)->first();
-        $repositoryStorage->quantity -= $batch->quantity;
-        $repositoryStorage->quantity += $request->quantity;
-        $repositoryStorage->save();
-
-        RepositoryBatch::where('id', $request->id)->update([
-            'price' => $request->price,
-            'quantity' => $request->quantity,
-            'barcode' => $request->barcode,
             'expired_date' => $request->expired_date,
         ]);
 

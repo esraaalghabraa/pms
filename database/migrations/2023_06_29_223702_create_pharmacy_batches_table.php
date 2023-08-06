@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('expired_date');
             $table->date('date_of_entry');
             $table->integer('quantity');
+            $table->integer('exists_quantity');
             $table->foreignId('pharmacy_storage_id')->constrained('pharmacy_storages');
             $table->timestamps();
         });
