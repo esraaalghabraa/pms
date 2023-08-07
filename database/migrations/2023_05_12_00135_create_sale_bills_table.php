@@ -16,7 +16,8 @@ return new class extends Migration
         Schema::create('sale_bills', function (Blueprint $table) {
             $table->id();
             $table->date('date');
-            $table->double('total_Sale_price')->default(0);
+            $table->integer('number');
+            $table->double('total_sale_price')->default(0);
             $table->foreignId('customer_id')->constrained('customers');
             $table->foreignId('pharmacy_id')->constrained('pharmacies');
             $table->timestamps();

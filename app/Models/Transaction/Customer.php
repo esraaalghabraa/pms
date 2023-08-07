@@ -13,7 +13,7 @@ class Customer extends Model
 {
     use HasFactory;
     protected $guarded=[];
-    protected $hidden=['created_at','updated_at'];
+    protected $hidden=['created_at','updated_at','pivot'];
 
     function pharmacies() : BelongsToMany{
         return  $this->belongsToMany(Pharmacy::class,PharmacyCustomer::class);

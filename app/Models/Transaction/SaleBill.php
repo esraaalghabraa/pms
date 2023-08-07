@@ -12,7 +12,7 @@ class SaleBill extends Model
 {
     use HasFactory;
     protected $guarded=[];
-    protected $hidden=['created_at','updated_at'];
+    protected $hidden=['created_at','updated_at','customer_id','pharmacy_id'];
 
     public function saleItems()
     {

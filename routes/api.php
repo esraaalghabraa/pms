@@ -94,6 +94,7 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
             });
         Route::prefix('sale-bills')->controller(SaleBillsController::class)
             ->group(function (){
+                Route::post('get-medicine','getMedicine');
                 Route::post('get-all-daily','getDailyBills');
                 Route::post('get-all-customers','getCustomerBills');
                 Route::post('create','create');
