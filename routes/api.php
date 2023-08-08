@@ -94,13 +94,14 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
             });
         Route::prefix('sale-bills')->controller(SaleBillsController::class)
             ->group(function (){
-                Route::post('get-medicine','getMedicine');
+                Route::post('get-medicine-by-barcode','getMedicineByBarcode');
                 Route::post('get-all-daily','getDailyBills');
                 Route::post('get-all-customers','getCustomerBills');
-                Route::post('create','create');
-                Route::post('update','update');
-                Route::post('delete','delete');
-                Route::post('get','getBill');
+                Route::post('get-daily','getDailyBill');
+                Route::post('get-customer','getCustomerBill');
+                Route::post('create-customer-bill','createCustomerBill');
+                Route::post('add-sale-to-daily-bill','addSaleToDailyBill');
+                Route::post('delete-bill','deleteBill');
             });
     });
 

@@ -101,7 +101,7 @@ class PharmacyMedicinesController extends Controller
             'pharmacy_id' => 'required|numeric|exists:pharmacies,id',
             'price' => 'required|numeric',
             'quantity' => 'required|numeric|min:1',
-            'barcode' => 'required|string|min:5|max:15',
+            'barcode' => 'required|string|min:5|max:15|unique:pharmacy_batches,barcode',
             'expired_date' => 'required|string|max:50',
         ]);
         if ($validator->fails())
