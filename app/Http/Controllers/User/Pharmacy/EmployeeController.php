@@ -35,9 +35,9 @@ class EmployeeController extends Controller
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        return $this->success(Pharmacy::with(['users'=>function($q){
-            return $q->whereHas('roles',function ($query){
-                $query->whereNot('roles.id',Role::ROLE_ADMIN);
+        return $this->success(Pharmacy::with(['users' => function ($q) {
+            return $q->whereHas('roles', function ($query) {
+                $query->whereNot('roles.id', Role::ROLE_ADMIN);
             });
         }])->find($request->pharmacy_id));
     }
@@ -64,6 +64,13 @@ class EmployeeController extends Controller
         return $this->success();
     }
 
+    public function getPermissions()
+    {
+        $permissions = Role::with('permissions')
+            ->find(Role::ROLE_ADMIN)->permissions;
+        return $this->success($permissions);
+    }
+
     public function create(Request $request)
     {
         $input = $request->all();
@@ -74,6 +81,7 @@ class EmployeeController extends Controller
                 'password' => ['required', 'confirmed', Password::defaults()],
                 'role_id' => ['required', 'exists:roles,id', Rule::notIn(1, 2)],
                 'pharmacy_id' => 'required|exists:pharmacies,id',
+                'permissions'=>'required'
             ]);
         if ($validator->fails())
             return $validator->errors()->first();
@@ -88,6 +96,8 @@ class EmployeeController extends Controller
                 'verify_code' => $verify_code,
             ]);
             $user->assignRole($input['role_id']);
+            $permissions = json_decode(json_decode($request->permissions));
+            $user->givePermissionTo($permissions);
             PharmacyUser::create([
                 'user_id' => $user->id,
                 'pharmacy_id' => $input['pharmacy_id'],

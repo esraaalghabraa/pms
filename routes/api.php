@@ -80,6 +80,7 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
         Route::prefix('employees')->controller(EmployeeController::class)
             ->group(function (){
                 Route::post('get-all','getAll');
+                Route::get('get-permissions','getPermissions');
                 Route::post('delete','delete');
                 Route::post('get','get');
                 Route::post('create','create');
