@@ -79,11 +79,14 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
             });
         Route::prefix('employees')->controller(EmployeeController::class)
             ->group(function (){
-                Route::post('get-all','getAll');
+                Route::post('get-roles','getRoles');
+                Route::post('create-roles','createRole');
                 Route::get('get-permissions','getPermissions');
-                Route::post('delete','delete');
-                Route::post('get','get');
-                Route::post('create','create');
+                Route::post('get-employees','getEmployees');
+                Route::post('get-employee','getEmployee');
+                Route::post('create-employee','createEmployee');
+                Route::post('update-employee','updateEmployee');
+                Route::post('delete-employee','deleteEmployee');
             });
         Route::prefix('roles')->controller(RoleController::class)
             ->group(function (){

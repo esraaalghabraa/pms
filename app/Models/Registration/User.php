@@ -19,7 +19,7 @@ class User extends Authenticatable
     protected $guard = 'user';
     protected $guard_name = 'user';
     protected $guarded=[];
-    protected $hidden=['password','email_verified_at','rememberToken','created_at','updated_at','pivot'];
+    protected $hidden=['password','email_verified_at','remember_token','verify_code','rememberToken','created_at','updated_at','pivot'];
     const USER_TOKEN = "userToken";
 
 

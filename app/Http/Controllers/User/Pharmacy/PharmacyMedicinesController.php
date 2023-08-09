@@ -17,15 +17,6 @@ use Illuminate\Support\Facades\Validator;
 class PharmacyMedicinesController extends Controller
 {
 
-//    public function __construct()
-//    {
-//        try {
-//            $this->authorize(['drugs-repo','orders-pharma','employee-pharma','bills-pharma','sales-pharma','stock-pharma']);
-//
-//        } catch (AuthorizationException $e) {
-//            return $this->error('unAuthorized',403);
-//        }
-//    }
     // TODO add other get
     public function getStoredMedicines(Request $request): JsonResponse
     {
