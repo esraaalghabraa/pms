@@ -20,24 +20,24 @@ class RequestDrugController extends Controller
 
     public function get()
     {
-       return $this->success(AddDrugRequest::get());
+        return $this->success(AddDrugRequest::get());
     }
 
     public function getPending()
     {
-        $orders = AddDrugRequest::where('status','pending')->get();
+        $orders = AddDrugRequest::where('status', 'pending')->get();
         return $this->success($orders);
     }
 
     public function getAccepting()
     {
-        $orders = AddDrugRequest::where('status','accepting')->get();
+        $orders = AddDrugRequest::where('status', 'accepting')->get();
         return $this->success($orders);
     }
 
     public function getRejecting()
     {
-        $orders = AddDrugRequest::where('status','rejecting')->get();
+        $orders = AddDrugRequest::where('status', 'rejecting')->get();
         return $this->success($orders);
     }
 
@@ -53,7 +53,7 @@ class RequestDrugController extends Controller
             $order = AddDrugRequest::where('id', $request->id)->first();
             if (!$order)
                 return $this->error();
-            $order->update(['status'=>'accepting']);
+            $order->update(['status' => 'accepting']);
             $order->save();
             DB::commit();
             return $this->success('Done Accept Your Request');
@@ -71,7 +71,9 @@ class RequestDrugController extends Controller
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         $order = AddDrugRequest::where('id', $request->id)->first();
-        $order->update(['status'=>'rejecting']);
+        if (!$order)
+            return $this->error('The selected id is invalid because order archived already.');
+        $order->update(['status' => 'rejecting']);
         $order->save();
         return $this->success('Sorry, your account within PMS has been canceled due to fake information within the registration account');
     }
@@ -83,23 +85,27 @@ class RequestDrugController extends Controller
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        AddDrugRequest::onlyTrashed()->where('id', $request->id)->first()->forceDelete();
+        $order=AddDrugRequest::onlyTrashed()->where('id', $request->id)->first();
+        if (!$order)
+            return $this->error('The selected id is invalid because order unarchived already.');
+        $order->forceDelete();
         return $this->success();
     }
 
     public function deleteAll(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'archive_requests' => 'required',
+            'archive_requests_ids' => 'required',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        $archiveRequests = json_decode($request->archive_requests);
-        foreach ($archiveRequests as $archiveRequest)
-            AddDrugRequest::onlyTrashed()
-                ->where('id', $archiveRequest->id)
-                ->first()->forceDelete();
-
+        $archiveRequests = json_decode(json_decode($request->archive_requests_ids));
+        foreach ($archiveRequests as $archiveRequest){
+            $order=AddDrugRequest::onlyTrashed()->where('id', $archiveRequest)->first();
+            if(!$order)
+                return $this->error('The selected id is invalid because order unarchived already.');
+            $order->forceDelete();
+        }
         return $this->success();
     }
 
@@ -133,7 +139,7 @@ class RequestDrugController extends Controller
         $order = RegistrationRequest::onlyTrashed()->where('id', $request->id)->first();
         if (!$order)
             return $this->error('order not found in archive');
-        $order->update(['deleted_at'=>null]);
+        $order->update(['deleted_at' => null]);
         $order->save();
         return $this->success();
     }
