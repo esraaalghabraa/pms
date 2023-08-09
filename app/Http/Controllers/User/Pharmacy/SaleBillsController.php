@@ -99,6 +99,7 @@ class SaleBillsController extends Controller
             "customer_id" => 'required|exists:customers,id',
             "total_sale_price" => 'required',
             'date' => 'required',
+            'time' => 'required',
             "sale_items" => 'required'
         ]);
         if ($validator->fails())
@@ -136,7 +137,7 @@ class SaleBillsController extends Controller
                 'sale_bill_id' => $sale_bill->id,
                 'quantity' => $sale_item->quantity,
                 'price' => $P_storage->price,
-                'date' => $sale_bill->date
+                'time' => $request->time
             ]);
 
             $P_batch->save();
