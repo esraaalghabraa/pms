@@ -89,7 +89,7 @@ class RepositoryMedicinesController extends Controller
             'repository_id' => 'required|numeric|exists:repositories,id',
             'price' => 'required|numeric',
             'quantity' => 'required|numeric|min:1',
-            'barcode' => 'required|string|min:5|max:15',
+            'barcode' => 'required|string|min:5|max:15|unique:repository_batches,barcode',
             'expired_date' => 'required|string|max:50',
         ]);
         if ($validator->fails())

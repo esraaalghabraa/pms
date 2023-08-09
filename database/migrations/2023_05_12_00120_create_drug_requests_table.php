@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::create('drug_requests', function (Blueprint $table) {
             $table->id();
-            $table->enum('status',['pending','accepting','rejecting'])->default('pending');
+            $table->enum('status',['pending','accepting','received','rejecting'])->default('pending');
             $table->date('date')->default(Date::now());
             $table->date('date_delivery')->nullable();
 //            $table->integer('total')->default(0);

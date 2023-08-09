@@ -7,10 +7,13 @@ use App\Models\ItemBatch;
 use App\Models\Registration\Repository;
 use App\Models\RepositoryBatch;
 use App\Models\Transaction\DrugRequest;
+use App\Models\Transaction\PharmacyBatch;
+use App\Models\Transaction\PharmacyStorage;
 use App\Models\Transaction\RepositoryStorage;
 use App\Models\Transaction\RequestItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Validator;
 
 class MedicinesBuyOrderController extends Controller
@@ -152,9 +155,14 @@ class MedicinesBuyOrderController extends Controller
             ]);
             $orderItems = json_decode(json_decode($request->order_items));
             foreach ($orderItems as $medicine) {
+                $repositoryStorage = RepositoryStorage::where('id', $medicine->repository_storage_id)->first();
+                if ($medicine->quantity > $repositoryStorage->quantity)
+                    return $this->error('quantity not available');
+                $repositoryStorage->quantity -= $medicine->quantity;
+                $repositoryStorage->save();
                 $item = RequestItem::create([
                     'quantity' => $medicine->quantity,
-                    'price' => $medicine->price,
+                    'price' => $repositoryStorage->price,
                     'repository_storage_id' => $medicine->repository_storage_id,
                     'drug_request_id' => $medicineRequest->id,
                 ]);
@@ -176,9 +184,6 @@ class MedicinesBuyOrderController extends Controller
                         ->update([
                             'exists_quantity' => $batch->exists_quantity - $quantityOfBatch
                         ]);
-                    $repositoryStorage = RepositoryStorage::where('id', $medicine->repository_storage_id)->first();
-                    $repositoryStorage->quantity -= $quantityOfBatch;
-                    $repositoryStorage->save();
                     ItemBatch::create([
                         'item_id' => $item->id,
                         'batch_id' => $batch->id,
@@ -192,25 +197,73 @@ class MedicinesBuyOrderController extends Controller
         }
     }
 
-    public function receive(Request $request): JsonResponse
+    public function receive(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:drug_requests',
-            'order_items' => 'required',
+            'pharmacy_id' => 'required|exists:pharmacies,id',
+            'request_items_prices' => 'required'
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-
         try {
             $medicineRequest = DrugRequest::where('id', $request->id)->first();
             if ($medicineRequest->status != 'accepting') {
-                return $this->error("you can't receipt Order because repository not accept it");
+                return $this->error("you can't receipt Order because status is " . $medicineRequest->status);
             }
-            $medicineRequest->status = 'receipted';
-            $medicineRequest->save();
-
-            // TODO
-
+            $medicineRequest->status = 'received';
+            $request_items_prices = json_decode(json_decode($request->request_items_prices));
+            foreach ($request_items_prices as $requestItemPrice) {
+                $requestItem = RequestItem::find($requestItemPrice->id);
+                $pharmacyStorage = PharmacyStorage::where([
+                    'drug_id' => $requestItem->repositoryStorage->drug->id,
+                    'pharmacy_id' => $request->pharmacy_id,
+                ])->first();
+                if (!$pharmacyStorage) {
+                    $pharmacyStorage = PharmacyStorage::create([
+                        'pharmacy_id' => $request->pharmacy_id,
+                        'drug_id' => $requestItem->repositoryStorage->drug->id,
+                        'price' => $requestItemPrice->price,
+                        'quantity' => $requestItem->quantity,
+                    ]);
+                } else {
+                    $pharmacyStorage->update([
+                        'price' => $requestItemPrice->price,
+                        'quantity' => $pharmacyStorage->quantity + $requestItem->quantity,
+                    ]);
+                }
+                foreach ($requestItem->batches as $batch) {
+                    $itemBatch = ItemBatch::where([
+                        'item_id' => $requestItem->id,
+                        'batch_id' => $batch->id,
+                    ])->first();
+                    $pharmacyBatchAlready = PharmacyBatch::where([
+                        'pharmacy_storage_id' => $pharmacyStorage->id,
+                        'barcode' => $batch->barcode,
+                    ])->first();
+                    if (!$pharmacyBatchAlready) {
+                        $pharmacyBatch = PharmacyBatch::where('pharmacy_storage_id', $pharmacyStorage->id)->latest()->first();
+                        $batchNumber = $pharmacyBatch ? $pharmacyBatch->number + 1 : 1;
+                        PharmacyBatch::create([
+                            'pharmacy_storage_id' => $pharmacyStorage->id,
+                            'price' => $requestItemPrice->price,
+                            'number' => $batchNumber,
+                            'quantity' => $itemBatch->quantity,
+                            'exists_quantity' => $itemBatch->quantity,
+                            'barcode' => $batch->barcode,
+                            'date_of_entry' => Date::now(),
+                            'expired_date' => $batch->expired_date,
+                        ]);
+                    } else {
+                        PharmacyBatch::where('id', $pharmacyBatchAlready->id)->update([
+                            'price' => $requestItemPrice->price,
+                            'quantity' => $pharmacyBatchAlready->quantity + $itemBatch->quantity,
+                            'exists_quantity' => $pharmacyBatchAlready->exists_quantity + $itemBatch->quantity,
+                            'date_of_entry' => Date::now(),
+                        ]);
+                    }
+                }
+            }
             return $this->success();
         } catch (\Exception $e) {
             return $this->error($e);

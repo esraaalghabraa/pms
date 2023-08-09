@@ -28,9 +28,4 @@ class RequestItem extends Model
         return $this->belongsToMany(RepositoryBatch::class, ItemBatch::class, 'item_id', 'batch_id');
     }
 
-    public function quantityItems()
-    {
-        return $this->hasMany( ItemBatch::class, 'item_id');
-    }
-
 }

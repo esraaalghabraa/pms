@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ItemBatch;
 use App\Models\Registration\Pharmacy;
 use App\Models\Transaction\DrugRequest;
+use App\Models\Transaction\RepositoryStorage;
 use App\Models\Transaction\RequestItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -141,8 +142,7 @@ class MedicinesSaleOrderController extends Controller
         }
     }
 
-    // TODO fix rejectOrder from all order
-    public function rejectOrder(Request $request): JsonResponse
+    public function rejectOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:drug_requests',
@@ -150,9 +150,28 @@ class MedicinesSaleOrderController extends Controller
         if ($validator->fails())
             return $this->error($validator->errors()->first());
         try {
-            DrugRequest::where('id', $request->id)->update([
-                'status' => 'rejecting',
-            ]);
+            $medicineRequest=DrugRequest::find($request->id);
+            if ($medicineRequest->status != 'pending') {
+                return $this->error("you can't receipt Order because status is " . $medicineRequest->status);
+            }
+            $medicineRequest->status = 'rejecting';
+            $medicineRequest->save();
+            foreach ($medicineRequest->requestItems as $requestItem) {
+                $repositoryStorage=RepositoryStorage::find($requestItem->repository_storage_id);
+                $repositoryStorage->quantity+=$requestItem->quantity;
+                $repositoryStorage->save();
+                foreach ($requestItem->batches as $batch) {
+                    $itemBatch = ItemBatch::where([
+                        'item_id' => $requestItem->id,
+                        'batch_id' => $batch->id,
+                    ])->first();
+                    $batch->exists_quantity+=$itemBatch->quantity;
+                    ItemBatch::where([
+                        'item_id' => $requestItem->id,
+                        'batch_id' => $batch->id,
+                    ])->delete();
+                }
+            }
             return $this->success();
         } catch (\Exception $e) {
             return $this->error($e);
