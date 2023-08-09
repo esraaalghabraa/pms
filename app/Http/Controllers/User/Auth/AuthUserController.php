@@ -63,7 +63,7 @@ class AuthUserController extends Controller
             if (Auth::guard('user')->attempt(['email' => $input['email'], 'password' => $input['password']])) {
                 $user = Auth::guard('user')->user();
                 $verify_code = Random::generate(5, '0-9');
-                Mail::to($user->email)->send(new TestMail($verify_code));
+//                Mail::to($user->email)->send(new TestMail($verify_code));
                 User::where('id',$user->id)->update(['verify_code' => $verify_code]);
                 DB::commit();
                 return $this->success('send verify code successfully');
@@ -107,5 +107,57 @@ class AuthUserController extends Controller
         //TODO delete account
 //        auth()->user()->delete();
 //        return $this->success(null, 'delete account successfully');
+    }
+
+    public function addInfo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:users',
+            'photo' => 'mimes:jpg,jpeg,png,jfif',
+            'name' => 'string|max:255',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+        //get user by token
+        $user = User::find($request->user()->id);
+        try {
+            //store photo in project and database
+            if ($request->has('photo')) {
+                $name = explode(' ', $user->name);
+                $path = $request->file('photo')->storeAs('users', $name[0] . '.' . $request->file('photo')->extension(), 'images');
+                $path = explode('/', $path);
+                $user->update(['photo' => $path[1]]);
+                $user->save();
+            }
+            if ($request->has('name')) {
+                $user->update(['name' => $request->name]);
+                $user->save();
+            }
+            if ($request->has('phone')) {
+                $user->update(['phone' => $request->phone]);
+                $user->save();
+            }
+            if ($request->has('address')) {
+                $user->update(['address' => $request->address]);
+                $user->save();
+            }
+        } catch (\Exception $e) {
+            //response failure
+            return $this->error('The photo unusable');
+        }
+        //response success
+        return $this->success();
+    }
+
+    public function getInfo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:users',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+        //get user by token
+        $user = User::find($request->user()->id);
+        return $this->success($user);
     }
 }

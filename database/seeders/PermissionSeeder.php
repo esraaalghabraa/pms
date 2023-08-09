@@ -23,10 +23,10 @@ class PermissionSeeder extends Seeder
 
         $pharma_permissions = [
             'drugs-pharma',
+            'customers-pharma',
             'orders-pharma',
             'employee-pharma',
             'bills-pharma',
-            'sales-pharma',
             'stock-pharma',
         ];
         foreach ($pharma_permissions as $permission) {
