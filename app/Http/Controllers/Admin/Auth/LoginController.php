@@ -18,7 +18,7 @@ class LoginController extends Controller
             'password' => 'required|string|min:6|max:255',
         ]);
         if ($validation->fails())
-        return $this->error($validation->errors()->first());
+        return $this->error("Your information is incorrect");
         if (Auth::guard('admin')->attempt(['email'=>$input['email'],'password'=>$input['password']])){
             $user = Auth::guard('admin')->user();
             $token = $user->createToken('myApp', ['admin'])->plainTextToken;
