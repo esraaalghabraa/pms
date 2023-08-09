@@ -8,7 +8,6 @@ use App\Http\Controllers\User\Pharmacy\CustomerController;
 use App\Http\Controllers\User\Pharmacy\EmployeeController;
 use App\Http\Controllers\User\Pharmacy\MedicinesBuyOrderController;
 use App\Http\Controllers\User\Pharmacy\PharmacyMedicinesController;
-use App\Http\Controllers\User\Pharmacy\RoleController;
 use App\Http\Controllers\User\Pharmacy\SaleBillsController;
 use App\Http\Controllers\User\Repository\MedicinesSaleOrderController;
 use App\Http\Controllers\User\Repository\RepositoryMedicinesController;

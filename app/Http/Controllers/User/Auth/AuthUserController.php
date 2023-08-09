@@ -3,18 +3,16 @@
 namespace App\Http\Controllers\User\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Mail\TestMail;
 use App\Models\Registration\Role;
 use App\Models\Registration\User;
 use Illuminate\Http\Request;
-use Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Nette\Utils\Random;
+use Illuminate\Support\Facades\Auth;
 
 class AuthUserController extends Controller
 {
@@ -26,15 +24,15 @@ class AuthUserController extends Controller
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
                 'password' => ['required', 'confirmed', Password::defaults()],
-                'role_id' => ['required', Rule::in(Role::ROLE_ADMIN,Role::ROLE_Supplier)],
+                'role_id' => ['required', Rule::in(Role::ROLE_ADMIN, Role::ROLE_Supplier)],
             ]);
         if ($validator->fails())
-            return $validator->errors()->first();
+            return $this->error($validator->errors()->first());
         try {
             DB::beginTransaction();
             $verify_code = Random::generate(5, '0-9');
             //Mail::to($input['email'])->send(new TestMail($verify_code));
-            $user=User::create([
+            $user = User::create([
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
@@ -62,17 +60,35 @@ class AuthUserController extends Controller
             DB::beginTransaction();
             if (Auth::guard('user')->attempt(['email' => $input['email'], 'password' => $input['password']])) {
                 $user = Auth::guard('user')->user();
-                $verify_code = Random::generate(5, '0-9');
-//                Mail::to($user->email)->send(new TestMail($verify_code));
-                User::where('id',$user->id)->update(['verify_code' => $verify_code]);
+                $token = $user->remember_token = $user->createToken(User::USER_TOKEN, ['user'])->plainTextToken;
+                $user->setRememberToken($token);
+                $user->verify_code = null;
+                $user->save();
+                $result = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'address' => $user->address,
+                    'photo' => $user->photo,
+                    'token' => $token,
+                    'roles' => $user->roles->map(function ($role) {
+                        return [
+                            'id' => $role->id,
+                            'name' => $role->name,
+                            'permissions' => $role->permissions,
+                        ];
+                    }),
+                ];
                 DB::commit();
-                return $this->success('send verify code successfully');
+                return $this->success($result, 'success');
+            } else {
+                return $this->error('Your information is incorrect');
             }
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->error($e);
         }
-        return $this->error();
     }
 
     public function verifyCode(Request $request)
@@ -82,7 +98,7 @@ class AuthUserController extends Controller
             'verifyCode' => 'required|numeric',
         ]);
         if ($validator->fails())
-            return $this->error();
+            return $this->error($validator->errors()->first());
         try {
             DB::beginTransaction();
             $user = User::where('email', $request->email)->first();
@@ -90,12 +106,31 @@ class AuthUserController extends Controller
                 return $this->error('verifyCode not Correct');
             $token = $user->remember_token = $user->createToken(User::USER_TOKEN, ['user'])->plainTextToken;
             $user->setRememberToken($token);
-            $user->verify_code=null;
+            $user->verify_code = null;
             $user->save();
             DB::commit();
             return $this->success($token, 'success');
         } catch (\Exception $e) {
-            //response failure because Server failure
+            DB::rollBack();
+            return $this->error('Server failure : ' . $e, 500);
+        }
+    }
+
+    public function sendVerifyCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:100|exists:users',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+        try {
+            $user = User::where('email', $request->email)->first();
+            $verify_code = Random::generate(5, '0-9');
+            //Mail::to($request->email)->send(new TestMail($verify_code));
+            $user->verify_code = $verify_code;
+            $user->save();
+            return $this->success('send verify code successfully');
+        } catch (\Exception $e) {
             return $this->error('Server failure : ' . $e, 500);
         }
     }
@@ -112,7 +147,7 @@ class AuthUserController extends Controller
     public function addInfo(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id'=>'required|exists:users',
+            'id' => 'required|exists:users',
             'photo' => 'mimes:jpg,jpeg,png,jfif',
             'name' => 'string|max:255',
         ]);
@@ -152,7 +187,7 @@ class AuthUserController extends Controller
     public function getInfo(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id'=>'required|exists:users',
+            'id' => 'required|exists:users',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());

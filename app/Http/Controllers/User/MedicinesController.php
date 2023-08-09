@@ -13,8 +13,12 @@ class MedicinesController extends Controller
 {
     public function getMedicines(): JsonResponse
     {
-        $medicines = Drug::select('id', 'brand_name')->get();
-        return $this->success($medicines);
+        try {
+            $medicines = Drug::select('id', 'brand_name')->get();
+            return $this->success($medicines);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
     }
 
     public function searchMedicines(Request $request): JsonResponse
@@ -27,8 +31,6 @@ class MedicinesController extends Controller
         try {
             $medicines = Drug::where('brand_name', 'LIKE', '%' . $request->brand_name . '%')
                 ->select('id', 'brand_name')->get();
-            if ($medicines == null)
-                return $this->error();
             return $this->success($medicines);
         } catch (\Exception $e) {
             return $this->error($e);
@@ -49,8 +51,6 @@ class MedicinesController extends Controller
                 ->with('scientificMaterials')
                 ->with('therapeuticEffects')
                 ->find($request->id);
-            if ($medicine == null)
-                return $this->error();
             return $this->success($medicine);
         } catch (\Exception $e) {
             return $this->error($e);

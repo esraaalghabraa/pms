@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('name',30);
             $table->enum('type',['pharmacy','repository']);
-            $table->string('document_photo',255)->nullable();
-            $table->enum('status',['pending','accepting','rejecting']);
+            $table->string(255, 'document_photo')->nullable();
+            $table->enum('status',['pending','accepting','rejecting'])->default('pending');
             $table->string('phone_number',30);
             $table->string('address',30);
             $table->foreignId('user_id')->constrained('users');
