@@ -39,6 +39,26 @@ class PharmacyMedicinesController extends Controller
         }
     }
 
+    public function getMedicinesOfCategory(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'pharmacy_id' => 'required|exists:pharmacies,id',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+
+        try {
+            $medicines = PharmacyStorage::where('pharmacy_id', $request->pharmacy_id)
+                ->with(['drug' => function ($q) use ($request) {
+                    return $q->select('id', 'category_id', 'brand_name')->where('category_id', $request->category_id);
+                }])->get();
+            return $this->success(new StoredMedicinesResource($medicines));
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
     public function getStoredMedicine(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -105,7 +125,7 @@ class PharmacyMedicinesController extends Controller
                 'price' => $request->price,
             ]);
             return $this->success();
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
@@ -163,10 +183,28 @@ class PharmacyMedicinesController extends Controller
             ]);
             DB::commit();
             return $this->success();
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             DB::rollBack();
             return $this->error($e->getMessage());
         }
+    }
+
+    public function getMedicinesFromArray($medicines) {
+        $medicines->map(function ($medicine) {
+            return [
+                'id' => $medicine->id,
+                'quantity' => $medicine->quantity,
+                'price' => $medicine->price,
+                'brand_name' => $medicine->drug != null ? $medicine->drug->brand_name : '',
+            ];
+        });
+        $resultMedicines = [];
+        $i = 0;
+        foreach ($medicines as $medicine) {
+            if ($medicine['brand_name'] != '')
+                $resultMedicines[$i++] = $medicine;
+        }
+        return $resultMedicines;
     }
 
 }
