@@ -19,7 +19,6 @@ class PermissionSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
         $adminRole = Role::where('id', Role::ROLE_PHARMACY)->first();
-        $supplierRole = Role::where('id', Role::ROLE_REPOSITORY)->first();
 
         $pharma_permissions = [
             'stored-medicines',
@@ -33,18 +32,6 @@ class PermissionSeeder extends Seeder
                 'guard_name' => 'user'
             ]);
             $adminRole->givePermissionTo($pharma_permission);
-        }
-
-        $repo_permissions = [
-            'all',
-        ];
-
-        foreach ($repo_permissions as $permission) {
-            $repo_permission = Permission::create([
-                'name' => $permission,
-                'guard_name' => 'user'
-            ]);
-            $supplierRole->givePermissionTo($repo_permission);
         }
     }
 }
