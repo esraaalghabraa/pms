@@ -38,6 +38,7 @@ Route::controller(AuthUserController::class)
                 Route::get('logout', 'logout');
                 Route::post('edit-profile', 'addInfo');
                 Route::post('get-profile', 'getInfo');
+                Route::post('reset-password', 'resetPassword');
             });
     });
 
