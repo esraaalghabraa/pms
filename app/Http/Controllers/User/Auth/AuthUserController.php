@@ -65,7 +65,6 @@ class AuthUserController extends Controller
                 $user->verify_code = null;
                 $user->save();
                 $result = [
-                    'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone' => $user->phone,
@@ -150,6 +149,8 @@ class AuthUserController extends Controller
             'id' => 'required|exists:users',
             'photo' => 'mimes:jpg,jpeg,png,jfif',
             'name' => 'string|max:255',
+            'phone' => 'string|max:255',
+            'address' => 'string|max:255',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
@@ -162,26 +163,23 @@ class AuthUserController extends Controller
                 $path = $request->file('photo')->storeAs('users', $name[0] . '.' . $request->file('photo')->extension(), 'images');
                 $path = explode('/', $path);
                 $user->update(['photo' => $path[1]]);
-                $user->save();
             }
             if ($request->has('name')) {
                 $user->update(['name' => $request->name]);
-                $user->save();
             }
             if ($request->has('phone')) {
                 $user->update(['phone' => $request->phone]);
-                $user->save();
             }
             if ($request->has('address')) {
                 $user->update(['address' => $request->address]);
-                $user->save();
             }
+            $user->save();
+            return $this->success();
+
         } catch (\Exception $e) {
             //response failure
             return $this->error('The photo unusable');
         }
-        //response success
-        return $this->success();
     }
 
     public function getInfo(Request $request)
@@ -191,8 +189,39 @@ class AuthUserController extends Controller
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        //get user by token
         $user = User::find($request->user()->id);
-        return $this->success($user);
+        $result = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'address' => $user->address,
+            'photo' => $user->photo,
+            'roles' => $user->roles->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->map(function ($permission){
+                        return [
+                            'id' => $permission->id,
+                            'name' => $permission->name,
+                        ];
+                    })
+                ];
+            }),
+        ];
+        return $this->success($result);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(),
+            [
+                'password' => ['required', 'confirmed', Password::defaults()],
+            ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+        $user = Auth::user();
+        $user->password = $request->password;
+        return $this->success();
     }
 }
