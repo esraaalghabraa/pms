@@ -18,16 +18,14 @@ class PermissionSeeder extends Seeder
     public function run()
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
-        $adminRole = Role::where('id', Role::ROLE_ADMIN)->first();
-        $supplierRole = Role::where('id', Role::ROLE_Supplier)->first();
+        $adminRole = Role::where('id', Role::ROLE_PHARMACY)->first();
+        $supplierRole = Role::where('id', Role::ROLE_REPOSITORY)->first();
 
         $pharma_permissions = [
-            'drugs-pharma',
-            'customers-pharma',
-            'orders-pharma',
-            'employee-pharma',
-            'bills-pharma',
-            'stock-pharma',
+            'stored-medicines',
+            'orders-buy-medicines',
+            'sales-customers',
+            'employees',
         ];
         foreach ($pharma_permissions as $permission) {
             $pharma_permission = Permission::create([
@@ -38,8 +36,7 @@ class PermissionSeeder extends Seeder
         }
 
         $repo_permissions = [
-            'drugs-repo',
-            'orders-repo'
+            'all',
         ];
 
         foreach ($repo_permissions as $permission) {

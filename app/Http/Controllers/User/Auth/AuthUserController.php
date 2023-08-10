@@ -26,7 +26,7 @@ class AuthUserController extends Controller
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
                 'password' => ['required', 'confirmed', Password::defaults()],
-                'role_id' => ['required', Rule::in(Role::ROLE_ADMIN,Role::ROLE_Supplier)],
+                'role_id' => ['required', Rule::in(Role::ROLE_PHARMACY,Role::ROLE_REPOSITORY)],
             ]);
         if ($validator->fails())
             return $validator->errors()->first();

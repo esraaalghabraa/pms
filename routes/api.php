@@ -45,7 +45,7 @@ Route::controller(AuthUserController::class)
 Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
 
     Route::prefix('pharmacy')->group(function () {
-        Route::middleware('check_permission:drugs-pharma')->prefix('stored-medicines')->controller(PharmacyMedicinesController::class)
+        Route::middleware('check_permission:stored-madicines')->prefix('stored-medicines')->controller(PharmacyMedicinesController::class)
             ->group(function () {
                 Route::post('get', 'getStoredMedicines');
                 Route::post('search', 'searchStoredMedicines');
@@ -102,7 +102,7 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
             });
     });
 
-    Route::middleware('check_permission:drugs-repo,orders-repo')->prefix('repository')->group(function () {
+    Route::middleware('check_role:Supplier')->prefix('repository')->group(function () {
         Route::controller(RepositoryMedicinesController::class)->group(function () {
             Route::prefix('stored-medicines')->group(function () {
                 Route::post('get', 'getStoredMedicines');

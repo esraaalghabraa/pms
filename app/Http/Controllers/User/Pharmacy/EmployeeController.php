@@ -30,7 +30,7 @@ class EmployeeController extends Controller
     public function getPermissions()
     {
         $permissions = Role::with('permissions')
-            ->find(Role::ROLE_ADMIN)->permissions;
+            ->find(Role::ROLE_PHARMACY)->permissions;
         return $this->success($permissions);
     }
 
@@ -44,9 +44,9 @@ class EmployeeController extends Controller
 
         $roles = Pharmacy::with(['users' => function ($q) {
             return $q->whereHas('roles', function ($query) {
-                $query->where('roles.id', Role::ROLE_ADMIN);
+                $query->where('roles.id', Role::ROLE_PHARMACY);
             })->with(['roles' => function ($q) {
-                return $q->whereNot('roles.id', Role::ROLE_ADMIN);
+                return $q->whereNot('roles.id', Role::ROLE_PHARMACY);
             }]);
         }])->find($request->pharmacy_id)->users->first()->roles;
         $roles = $roles->map(function ($role) {
@@ -61,7 +61,7 @@ class EmployeeController extends Controller
     public function createRole(Request $request)
     {
         $user = Auth::user();
-        if ($user->roles->first()->id != Role::ROLE_ADMIN) {
+        if ($user->roles->first()->id != Role::ROLE_PHARMACY) {
             return $this->error("You do not have permeation to this");
         }
         $validator = Validator::make($request->all(), [
@@ -90,7 +90,7 @@ class EmployeeController extends Controller
             return $this->error($validator->errors()->first());
         return $this->success(Pharmacy::with(['users' => function ($q) {
             return $q->whereHas('roles', function ($q) {
-                return $q->whereNot('roles.id', Role::ROLE_ADMIN);
+                return $q->whereNot('roles.id', Role::ROLE_PHARMACY);
             });
         }])->find($request->pharmacy_id)->users);
     }

@@ -13,9 +13,8 @@ class Role extends \Spatie\Permission\Models\Role
     protected $hidden=['created_at','updated_at'];
 
 
-    const ROLE_ADMIN = 1;
-    const ROLE_Supplier = 2;
-    const ROLE_Employee = 3;
+    const ROLE_PHARMACY = 1;
+    const ROLE_REPOSITORY = 2;
 
 
 
