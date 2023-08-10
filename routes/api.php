@@ -8,7 +8,6 @@ use App\Http\Controllers\User\Pharmacy\CustomerController;
 use App\Http\Controllers\User\Pharmacy\EmployeeController;
 use App\Http\Controllers\User\Pharmacy\MedicinesBuyOrderController;
 use App\Http\Controllers\User\Pharmacy\PharmacyMedicinesController;
-use App\Http\Controllers\User\Pharmacy\RoleController;
 use App\Http\Controllers\User\Pharmacy\SaleBillsController;
 use App\Http\Controllers\User\Repository\MedicinesSaleOrderController;
 use App\Http\Controllers\User\Repository\RepositoryMedicinesController;
@@ -45,9 +44,15 @@ Route::controller(AuthUserController::class)
 Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
 
     Route::prefix('pharmacy')->group(function () {
-        Route::middleware('check_permission:stored-madicines')->prefix('stored-medicines')->controller(PharmacyMedicinesController::class)
-            ->group(function () {
+        Route::middleware('check_permission:stored-medicines')->prefix('stored-medicines')
+            ->controller(PharmacyMedicinesController::class)->group(function () {
                 Route::post('get', 'getStoredMedicines');
+                Route::post('get-medicines-of-category', 'getMedicinesOfCategory');
+                Route::post('get-medicines-of-manufacture-company', 'getMedicinesOfManufactureCompany');
+                Route::post('get-medicines-of-dosage-form', 'getMedicinesOfDosageForm');
+                Route::post('get-medicines-of-scientific-material', 'getMedicinesOfScientificMaterial');
+                Route::post('get-medicines-of-therapeutic-effects', 'getMedicinesOfTherapeuticEffects');
+                Route::post('get-medicines-of-indication', 'getMedicinesOfIndication');
                 Route::post('search', 'searchStoredMedicines');
                 Route::post('get-stored-medicine', 'getStoredMedicine');
                 Route::post('create', 'createMedicineStorage');
@@ -56,56 +61,64 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
                 Route::post('update-batch', 'updateBatchMedicine');
             });
 
-        Route::controller(MedicinesBuyOrderController::class)->group(function () {
-            Route::prefix('repositories')->group(function () {
-                Route::get('get', 'getRepositories');
-                Route::post('search', 'searchRepository');
-                Route::post('get-repository', 'getRepository');
+        Route::middleware('check_permission:order-buy-medicines')
+            ->controller(MedicinesBuyOrderController::class)->group(function () {
+                Route::prefix('repositories')->group(function () {
+                    Route::get('get', 'getRepositories');
+                    Route::post('search', 'searchRepository');
+                    Route::post('get-repository-with-requests', 'getRepositoryWithRequests');
+                    Route::post('get-repository-with-medicines', 'getRepositoryWithMedicines');
+                });
+                Route::prefix('buy-orders')->group(function () {
+                    Route::post('get', 'get');
+                    Route::post('get-medicines-order', 'getMedicinesOrder');
+                    Route::post('send', 'sendOrder');
+                    Route::post('receive', 'receive');
+                });
             });
-            Route::middleware('check_permission:orders-pharma')->prefix('buy-orders')->group(function () {
-                Route::post('get', 'get');
-                Route::post('get-medicines-order', 'getMedicinesOrder');
-                Route::post('send', 'sendOrder');
-                Route::post('receive', 'receive');
+        Route::middleware('check_permission:sales-customers')->prefix('customers')
+            ->controller(CustomerController::class)->group(function () {
+                Route::post('get-all', 'getAll');
+                Route::post('create', 'create');
+                Route::post('saleBile', 'saleBile');
+                Route::post('update', 'update');
+                Route::post('delete', 'delete');
+                Route::post('get', 'getCustomer');
             });
-        });
-        Route::middleware('check_permission:customers-pharma')->prefix('customers')->controller(CustomerController::class)
-            ->group(function (){
-                Route::post('get-all','getAll');
-                Route::post('create','create');
-                Route::post('saleBile','saleBile');
-                Route::post('update','update');
-                Route::post('delete','delete');
-                Route::post('get','getCustomer');
+        Route::middleware('check_permission:employees')->prefix('employees')
+            ->controller(EmployeeController::class)->group(function () {
+                Route::post('get-roles', 'getRoles');
+                Route::post('create-roles', 'createRole');
+                Route::get('get-permissions', 'getPermissions');
+                Route::post('get-employees', 'getEmployees');
+                Route::post('get-employee', 'getEmployee');
+                Route::post('create-employee', 'createEmployee');
+                Route::post('update-employee', 'updateEmployee');
+                Route::post('delete-employee', 'deleteEmployee');
             });
-        Route::middleware('check_permission:employee-pharma')->prefix('employees')->controller(EmployeeController::class)
-            ->group(function (){
-                Route::post('get-roles','getRoles');
-                Route::post('create-roles','createRole');
-                Route::get('get-permissions','getPermissions');
-                Route::post('get-employees','getEmployees');
-                Route::post('get-employee','getEmployee');
-                Route::post('create-employee','createEmployee');
-                Route::post('update-employee','updateEmployee');
-                Route::post('delete-employee','deleteEmployee');
-            });
-        Route::middleware('check_permission:bills-pharma')->prefix('sale-bills')->controller(SaleBillsController::class)
-            ->group(function (){
-                Route::post('get-medicine-by-barcode','getMedicineByBarcode');
-                Route::post('get-all-daily','getDailyBills');
-                Route::post('get-all-customers','getCustomerBills');
-                Route::post('get-daily','getDailyBill');
-                Route::post('get-customer','getCustomerBill');
-                Route::post('create-customer-bill','createCustomerBill');
-                Route::post('add-sale-to-daily-bill','addSaleToDailyBill');
-                Route::post('delete-bill','deleteBill');
+        Route::middleware('check_permission:sales-customers')->prefix('sale-bills')
+            ->controller(SaleBillsController::class)->group(function () {
+                Route::post('get-medicine-by-barcode', 'getMedicineByBarcode');
+                Route::post('get-all-daily', 'getDailyBills');
+                Route::post('get-all-customers', 'getCustomerBills');
+                Route::post('get-daily', 'getDailyBill');
+                Route::post('get-customer', 'getCustomerBill');
+                Route::post('create-customer-bill', 'createCustomerBill');
+                Route::post('add-sale-to-daily-bill', 'addSaleToDailyBill');
+                Route::post('delete-bill', 'deleteBill');
             });
     });
 
-    Route::middleware('check_role:Supplier')->prefix('repository')->group(function () {
+    Route::middleware('check_role:repository')->prefix('repository')->group(function () {
         Route::controller(RepositoryMedicinesController::class)->group(function () {
             Route::prefix('stored-medicines')->group(function () {
                 Route::post('get', 'getStoredMedicines');
+                Route::post('get-medicines-of-category', 'getMedicinesOfCategory');
+                Route::post('get-medicines-of-manufacture-company', 'getMedicinesOfManufactureCompany');
+                Route::post('get-medicines-of-dosage-form', 'getMedicinesOfDosageForm');
+                Route::post('get-medicines-of-scientific-material', 'getMedicinesOfScientificMaterial');
+                Route::post('get-medicines-of-therapeutic-effects', 'getMedicinesOfTherapeuticEffects');
+                Route::post('get-medicines-of-indication', 'getMedicinesOfIndication');
                 Route::post('search', 'searchStoredMedicines');
                 Route::post('get-stored-medicine', 'getStoredMedicine');
                 Route::post('create', 'createMedicineStorage');

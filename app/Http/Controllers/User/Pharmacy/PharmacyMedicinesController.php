@@ -11,7 +11,9 @@ use Illuminate\Auth\Access\AuthorizationException;
 use App\Models\Transaction\RepositoryStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class PharmacyMedicinesController extends Controller
@@ -26,11 +28,35 @@ class PharmacyMedicinesController extends Controller
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
-        $medicines = PharmacyStorage::where('pharmacy_id', $request->pharmacy_id)
-            ->with(['drug' => function ($q) {
-                return $q->select('id', 'brand_name');
-            }])->get();
-        return $this->success(new StoredMedicinesResource($medicines));
+        try {
+            $medicines = PharmacyStorage::where('pharmacy_id', $request->pharmacy_id)
+                ->with(['drug' => function ($q) {
+                    return $q->select('id', 'brand_name');
+                }])->get();
+            return $this->success(new StoredMedicinesResource($medicines));
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    public function getMedicinesOfCategory(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'pharmacy_id' => 'required|exists:pharmacies,id',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+
+        try {
+            $medicines = PharmacyStorage::where('pharmacy_id', $request->pharmacy_id)
+                ->with(['drug' => function ($q) use ($request) {
+                    return $q->select('id', 'category_id', 'brand_name')->where('category_id', $request->category_id);
+                }])->get();
+            return $this->success(new StoredMedicinesResource($medicines));
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
     }
 
     public function getStoredMedicine(Request $request): JsonResponse
@@ -41,14 +67,17 @@ class PharmacyMedicinesController extends Controller
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
-        $medicine = PharmacyStorage::with(['drug' => function ($q) {
-            return $q->select('id', 'brand_name', 'scientific_name');
-        }])->with(['batches'])->find($request->id);
-        return $this->success($medicine);
+        try {
+            $medicine = PharmacyStorage::with(['drug' => function ($q) {
+                return $q->select('id', 'brand_name', 'scientific_name');
+            }])->with(['batches'])->find($request->id);
+            return $this->success($medicine);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
     }
 
-    // TODO fix null value
-    public function searchStoredMedicines(Request $request): JsonResponse
+    public function searchStoredMedicines(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'pharmacy_id' => 'required|exists:pharmacies,id',
@@ -63,9 +92,21 @@ class PharmacyMedicinesController extends Controller
                     return $q->where('brand_name', 'LIKE', '%' . $request->brand_name . '%')
                         ->select('id', 'brand_name');
                 }])->get();
-            if ($medicines == null)
-                return $this->error();
-            return $this->success(new StoredMedicinesResource($medicines));
+            $medicines = $medicines->map(function ($medicine) {
+                return [
+                    'id' => $medicine->id,
+                    'quantity' => $medicine->quantity,
+                    'price' => $medicine->price,
+                    'brand_name' => $medicine->drug != null ? $medicine->drug->brand_name : '',
+                ];
+            });
+            $resultMedicines = [];
+            $i = 0;
+            foreach ($medicines as $medicine) {
+                if ($medicine['brand_name'] != '')
+                    $resultMedicines[$i++] = $medicine;
+            }
+            return $this->success($resultMedicines);
         } catch (\Exception $e) {
             return $this->error($e);
         }
@@ -79,12 +120,17 @@ class PharmacyMedicinesController extends Controller
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        PharmacyStorage::where('id', $request->medicine_storage_id)->update([
-            'price' => $request->price,
-        ]);
-        return $this->success();
+        try {
+            PharmacyStorage::where('id', $request->medicine_storage_id)->update([
+                'price' => $request->price,
+            ]);
+            return $this->success();
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
     }
 
+    // TODO FIX UNIQUE BARCODE
     public function createBatchMedicine(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -92,49 +138,73 @@ class PharmacyMedicinesController extends Controller
             'pharmacy_id' => 'required|numeric|exists:pharmacies,id',
             'price' => 'required|numeric',
             'quantity' => 'required|numeric|min:1',
-            'barcode' => 'required|string|min:5|max:15|unique:pharmacy_batches,barcode',
+            'barcode' => 'required|string|min:5|max:15',
             'expired_date' => 'required|string|max:50',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
 
-        $pharmacyStorage = PharmacyStorage::where([
-            'drug_id'=> $request->medicine_id,
-            'pharmacy_id'=> $request->pharmacy_id
-        ])->get();
-        if (count($pharmacyStorage) == 0) {
-            $pharmacyStorage[0] = PharmacyStorage::create([
-                'quantity' => $request->quantity,
-                'price' => $request->price,
+        try {
+            DB::beginTransaction();
+            $pharmacyStorage = PharmacyStorage::where([
                 'drug_id' => $request->medicine_id,
-                'pharmacy_id' => $request->pharmacy_id,
-            ]);
-        }
-        $previousBatch = PharmacyBatch::select('id', 'number', 'pharmacy_storage_id')
-            ->where('pharmacy_storage_id', $pharmacyStorage[0]->id)->latest()->first();
-
-        $batchNumber = 1;
-        if ($previousBatch != null) {
-            $batchNumber = $previousBatch->number + 1;
-            PharmacyStorage::where('id', $pharmacyStorage[0]->id)
-                ->update([
-                    'quantity' => $pharmacyStorage[0]->quantity + $request->quantity,
+                'pharmacy_id' => $request->pharmacy_id
+            ])->get();
+            if (count($pharmacyStorage) == 0) {
+                $pharmacyStorage[0] = PharmacyStorage::create([
+                    'quantity' => $request->quantity,
                     'price' => $request->price,
+                    'drug_id' => $request->medicine_id,
+                    'pharmacy_id' => $request->pharmacy_id,
                 ]);
+            }
+            $previousBatch = PharmacyBatch::select('id', 'number', 'pharmacy_storage_id')
+                ->where('pharmacy_storage_id', $pharmacyStorage[0]->id)->latest()->first();
+
+            $batchNumber = 1;
+            if ($previousBatch != null) {
+                $batchNumber = $previousBatch->number + 1;
+                PharmacyStorage::where('id', $pharmacyStorage[0]->id)
+                    ->update([
+                        'quantity' => $pharmacyStorage[0]->quantity + $request->quantity,
+                        'price' => $request->price,
+                    ]);
+            }
+
+            PharmacyBatch::create([
+                'pharmacy_storage_id' => $pharmacyStorage[0]->id,
+                'price' => $request->price,
+                'number' => $batchNumber,
+                'quantity' => $request->quantity,
+                'exists_quantity' => $request->quantity,
+                'barcode' => $request->barcode,
+                'date_of_entry' => Date::now(),
+                'expired_date' => $request->expired_date,
+            ]);
+            DB::commit();
+            return $this->success();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->error($e->getMessage());
         }
+    }
 
-        PharmacyBatch::create([
-            'pharmacy_storage_id' => $pharmacyStorage[0]->id,
-            'price' => $request->price,
-            'number' => $batchNumber,
-            'quantity' => $request->quantity,
-            'exists_quantity' => $request->quantity,
-            'barcode' => $request->barcode,
-            'date_of_entry' => Date::now(),
-            'expired_date' => $request->expired_date,
-        ]);
-
-        return $this->success();
+    public function getMedicinesFromArray($medicines) {
+        $medicines->map(function ($medicine) {
+            return [
+                'id' => $medicine->id,
+                'quantity' => $medicine->quantity,
+                'price' => $medicine->price,
+                'brand_name' => $medicine->drug != null ? $medicine->drug->brand_name : '',
+            ];
+        });
+        $resultMedicines = [];
+        $i = 0;
+        foreach ($medicines as $medicine) {
+            if ($medicine['brand_name'] != '')
+                $resultMedicines[$i++] = $medicine;
+        }
+        return $resultMedicines;
     }
 
 }

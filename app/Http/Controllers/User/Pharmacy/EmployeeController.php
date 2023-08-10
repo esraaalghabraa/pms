@@ -3,17 +3,14 @@
 namespace App\Http\Controllers\User\Pharmacy;
 
 use App\Http\Controllers\Controller;
-use App\Mail\TestMail;
 use App\Models\Registration\Pharmacy;
 use App\Models\Registration\PharmacyUser;
 use App\Models\Registration\Role;
 use App\Models\Registration\User;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
