@@ -39,7 +39,7 @@ class PharmacyMedicinesController extends Controller
         }
     }
 
-    public function getMedicinesOfCategory(Request $request): JsonResponse
+    public function getMedicinesOfCategory(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'pharmacy_id' => 'required|exists:pharmacies,id',
@@ -53,7 +53,27 @@ class PharmacyMedicinesController extends Controller
                 ->with(['drug' => function ($q) use ($request) {
                     return $q->select('id', 'category_id', 'brand_name')->where('category_id', $request->category_id);
                 }])->get();
-            return $this->success(new StoredMedicinesResource($medicines));
+            return $this->success($this->getMedicinesFromArray($medicines));
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    public function getMedicinesOfManufactureCompany(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'pharmacy_id' => 'required|exists:pharmacies,id',
+            'manufacture_company_id' => 'required|exists:manufacture_companies,id',
+        ]);
+        if ($validator->fails())
+            return $this->error($validator->errors()->first());
+
+        try {
+            $medicines = PharmacyStorage::where('pharmacy_id', $request->pharmacy_id)
+                ->with(['drug' => function ($q) use ($request) {
+                    return $q->select('id', 'category_id', 'brand_name')->where('manufacture_company_id', $request->manufacture_company_id);
+                }])->get();
+            return $this->success($this->getMedicinesFromArray($medicines));
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -92,21 +112,7 @@ class PharmacyMedicinesController extends Controller
                     return $q->where('brand_name', 'LIKE', '%' . $request->brand_name . '%')
                         ->select('id', 'brand_name');
                 }])->get();
-            $medicines = $medicines->map(function ($medicine) {
-                return [
-                    'id' => $medicine->id,
-                    'quantity' => $medicine->quantity,
-                    'price' => $medicine->price,
-                    'brand_name' => $medicine->drug != null ? $medicine->drug->brand_name : '',
-                ];
-            });
-            $resultMedicines = [];
-            $i = 0;
-            foreach ($medicines as $medicine) {
-                if ($medicine['brand_name'] != '')
-                    $resultMedicines[$i++] = $medicine;
-            }
-            return $this->success($resultMedicines);
+            return $this->success($this->getMedicinesFromArray($medicines));
         } catch (\Exception $e) {
             return $this->error($e);
         }
@@ -189,8 +195,9 @@ class PharmacyMedicinesController extends Controller
         }
     }
 
-    public function getMedicinesFromArray($medicines) {
-        $medicines->map(function ($medicine) {
+    public function getMedicinesFromArray($medicines): array
+    {
+        $medicines=$medicines->map(function ($medicine) {
             return [
                 'id' => $medicine->id,
                 'quantity' => $medicine->quantity,
