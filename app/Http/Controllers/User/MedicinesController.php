@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class MedicinesController extends Controller
 {
+    // TODO ADD other gets
     public function getMedicines(): JsonResponse
     {
         try {

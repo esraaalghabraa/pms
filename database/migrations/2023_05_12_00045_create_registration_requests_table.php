@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('name',30);
             $table->enum('type',['pharmacy','repository']);
-            $table->string(255, 'document_photo')->nullable();
+            $table->string( 'document_photo')->nullable();
             $table->enum('status',['pending','accepting','rejecting'])->default('pending');
             $table->string('phone_number',30);
             $table->string('address',30);

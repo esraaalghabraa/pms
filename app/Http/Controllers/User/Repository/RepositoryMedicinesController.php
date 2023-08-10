@@ -44,7 +44,6 @@ class RepositoryMedicinesController extends Controller
         return $this->success($medicine);
     }
 
-    // TODO fix null value
     public function searchStoredMedicines(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -62,7 +61,21 @@ class RepositoryMedicinesController extends Controller
                 }])->get();
             if ($medicines == null)
                 return $this->error();
-            return $this->success(new StoredMedicinesResource($medicines));
+            $medicines = $medicines->map(function ($medicine) {
+                return [
+                    'id' => $medicine->id,
+                    'quantity' => $medicine->quantity,
+                    'price' => $medicine->price,
+                    'brand_name' => $medicine->drug != null ? $medicine->drug->brand_name : '',
+                ];
+            });
+            $resultMedicines = [];
+            $i = 0;
+            foreach ($medicines as $medicine) {
+                if ($medicine['brand_name'] != '')
+                    $resultMedicines[$i++] = $medicine;
+            }
+            return $this->success($resultMedicines);
         } catch (\Exception $e) {
             return $this->error($e);
         }
@@ -71,12 +84,12 @@ class RepositoryMedicinesController extends Controller
     public function updateMedicine(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'medicine_storage_id' => 'required|numeric|exists:repository_storages,id',
+            'repository_storage_id' => 'required|numeric|exists:repository_storages,id',
             'price' => 'required|numeric',
         ]);
         if ($validator->fails())
             return $this->error($validator->errors()->first());
-        RepositoryStorage::where('id', $request->medicine_storage_id)->update([
+        RepositoryStorage::where('id', $request->repository_storage_id)->update([
             'price' => $request->price,
         ]);
         return $this->success();

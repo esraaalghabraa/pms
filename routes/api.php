@@ -59,7 +59,8 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
             Route::prefix('repositories')->group(function () {
                 Route::get('get', 'getRepositories');
                 Route::post('search', 'searchRepository');
-                Route::post('get-repository', 'getRepository');
+                Route::post('get-repository-with-requests', 'getRepositoryWithRequests');
+                Route::post('get-repository-with-medicines', 'getRepositoryWithMedicines');
             });
             Route::middleware('check_permission:orders-pharma')->prefix('buy-orders')->group(function () {
                 Route::post('get', 'get');

@@ -22,7 +22,7 @@ class Repository extends Model
         return $this->belongsTo(User::class,'user_id');
     }
 
-    public function medicineStorages(): HasMany
+    public function RepositoryStorages(): HasMany
     {
         return $this->hasMany(RepositoryStorage::class);
     }
